@@ -1,0 +1,64 @@
+# Production overlay: docker compose -f compose.yaml -f compose.production.yaml
+# Only `web` is published. API and PostgreSQL stay on the internal network.
+# No real deployment is performed by this repository's tooling.
+# Client IPs (login rate limits): the API trusts X-Forwarded-For only from the
+# web container's fixed address; the web server sets that header honestly.
+services:
+  postgres:
+    ports: !reset []
+    networks: [internal]
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN to the exact external https origin}
+      API_HOST: 0.0.0.0
+      API_PORT: "3001"
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-28800}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      TRUSTED_PROXIES: 172.30.0.10
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+    restart: unless-stopped
+  migrate:
+    # Explicit, one-off: docker compose ... run --rm migrate
+    profiles: ["migrate"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+    command: ["pnpm", "--filter", "@agency/api", "db:migrate"]
+    networks: [internal]
+    depends_on:
+      postgres:
+        condition: service_healthy
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        API_INTERNAL_URL: http://api:3001
+    ports:
+      - "${WEB_PUBLISH:-127.0.0.1:3000}:3000"
+    environment:
+      # Address(es) of a TLS edge proxy in front of web, as seen by web.
+      # Empty: the TCP peer of web is treated as the client.
+      WEB_TRUSTED_PROXIES: ${WEB_TRUSTED_PROXIES:-}
+    depends_on:
+      - api
+    networks:
+      internal:
+        ipv4_address: 172.30.0.10
+    restart: unless-stopped
+networks:
+  internal:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24

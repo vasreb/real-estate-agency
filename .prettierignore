@@ -1,0 +1,10 @@
+node_modules
+**/dist
+**/.next
+**/coverage
+**/generated
+**/playwright-report
+**/test-results
+.omo/evidence
+pnpm-lock.yaml
+apps/web/next-env.d.ts

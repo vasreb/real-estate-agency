@@ -1,0 +1,44 @@
+{
+  "name": "@agency/web",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3000",
+    "build": "next build",
+    "start": "node server.mjs --hostname 0.0.0.0 --port 3000",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@agency/contracts": "workspace:*",
+    "@agency/ui": "workspace:*",
+    "@hookform/resolvers": "^5.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "next": "~16.4.6",
+    "openapi-fetch": "^0.17.0",
+    "react": "~19.3.1",
+    "react-dom": "~19.3.1",
+    "react-hook-form": "^7.0.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@agency/config": "workspace:*",
+    "@playwright/test": "^1.0.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^27.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "~5.9.3",
+    "vitest": "~4.1.12"
+  }
+}

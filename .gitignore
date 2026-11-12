@@ -1,0 +1,34 @@
+node_modules/
+.next/
+dist/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+apps/api/src/generated/prisma/
+
+# Local caches and generated runtime output
+.pnpm-store/
+.turbo/
+.cache/
+out/
+*.log
+*.pid
+
+# Private keys and local database backups
+*.pem
+*.key
+*.p12
+*.pfx
+backups/
+*.dump
+*.backup
+*.sql.gz
+
+# Operating system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

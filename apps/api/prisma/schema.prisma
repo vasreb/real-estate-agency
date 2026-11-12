@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated/prisma"
+  moduleFormat = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  member
+  admin
+  @@map("team_role")
+}
+enum DealType {
+  sale
+  rental
+  @@map("deal_type")
+}
+enum DocumentType {
+  contract
+  amendment
+  listing_sheet
+  handover_report
+  other
+  @@map("document_type")
+}
+enum DocumentStatus {
+  draft
+  signed
+  unknown
+  @@map("document_status")
+}
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  email String @unique @db.VarChar(254)
+  passwordHash String @map("password_hash")
+  sessions Session[]
+  memberships TeamMember[]
+  @@map("users")
+}
+model Session {
+  tokenHash String @id @map("token_hash") @db.Char(64)
+  userId String @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+model Team {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  members TeamMember[]
+  deals Deal[]
+  @@map("teams")
+}
+model TeamMember {
+  teamId String @map("team_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  role Role
+  team Team @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+model Client {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  deals Deal[]
+  @@map("clients")
+}
+model Property {
+  id String @id @default(uuid()) @db.Uuid
+  address String
+  deals Deal[]
+  @@map("properties")
+}
+model Deal {
+  id String @id @default(uuid()) @db.Uuid
+  number String
+  type DealType
+  clientId String @map("client_id") @db.Uuid
+  propertyId String @map("property_id") @db.Uuid
+  teamId String @map("team_id") @db.Uuid
+  client Client @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  documents Document[]
+  @@unique([teamId, number])
+  @@map("deals")
+}
+model Document {
+  id String @id @default(uuid()) @db.Uuid
+  dealId String @map("deal_id") @db.Uuid
+  parentDocumentId String? @map("parent_document_id") @db.Uuid
+  type DocumentType
+  title String @db.VarChar(255)
+  documentNumber String? @map("document_number") @db.VarChar(255)
+  documentDate DateTime? @map("document_date") @db.Date
+  effectiveFrom DateTime? @map("effective_from") @db.Date
+  status DocumentStatus @default(unknown)
+  fileName String @map("file_name")
+  mimeType String @map("mime_type")
+  fileData Bytes @map("file_data")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  parent Document? @relation("DocumentParent", fields: [dealId, parentDocumentId], references: [dealId, id], onDelete: Restrict, onUpdate: Restrict, map: "documents_parent_same_deal_fk")
+  amendments Document[] @relation("DocumentParent")
+  @@unique([dealId, id])
+  @@index([dealId, parentDocumentId])
+  @@map("documents")
+}
