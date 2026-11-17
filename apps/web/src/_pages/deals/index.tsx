@@ -22,21 +22,21 @@ export function DealsPage({ initialData }: { initialData: DealList }) {
     <>
       <AppHeader />
       <main id="main" className="page">
-        <h1>Сделки</h1>
+        <h1>Deals</h1>
         {query.isError ? (
           <Alert>
             {errorMessage(query.error)}{" "}
             <Button variant="outline" onClick={() => void query.refetch()}>
-              Повторить
+              Retry
             </Button>
           </Alert>
         ) : query.data.items.length === 0 ? (
-          <p className="empty">Нет доступных сделок</p>
+          <p className="empty">No available deals</p>
         ) : (
           <>
             {query.isFetching && (
               <p className="muted" role="status">
-                Обновление…
+                Updating…
               </p>
             )}
             <DealsTable items={query.data.items} />

@@ -7,7 +7,7 @@ describe("shared HTTP foundation", () => {
   });
   it("accepts public errors and rejects leaked fields and unknown codes", () => {
     expect(
-      apiErrorSchema.parse({ code: "NOT_FOUND", message: "Не найдено" }).code,
+      apiErrorSchema.parse({ code: "NOT_FOUND", message: "Not found" }).code,
     ).toBe("NOT_FOUND");
     expect(
       apiErrorSchema.safeParse({ code: "SQL_ERROR", message: "private" })

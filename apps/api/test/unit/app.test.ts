@@ -18,7 +18,7 @@ describe("Fastify application factory", () => {
       expect(response.statusCode).toBe(404);
       expect(response.json()).toEqual({
         code: "NOT_FOUND",
-        message: "Запись не найдена",
+        message: "Record not found",
       });
       expect(response.headers["cache-control"]).toBe("private, no-store");
     } finally {
@@ -41,7 +41,7 @@ describe("Fastify application factory", () => {
       expect(response.statusCode).toBe(500);
       expect(response.json()).toEqual({
         code: "INTERNAL_ERROR",
-        message: "Внутренняя ошибка сервера",
+        message: "Internal server error",
       });
       expect(response.body).not.toContain("sentinel");
     } finally {

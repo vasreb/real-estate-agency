@@ -35,11 +35,11 @@ export function LogoutButton() {
         onClick={() => void logout()}
         disabled={pending}
       >
-        {pending ? "Выход…" : "Выйти"}
+        {pending ? "Signing out…" : "Sign out"}
       </Button>
       {failed && (
         <Alert>
-          Не удалось выйти: сессия может быть активна. Повторите попытку.
+          Sign-out failed: the session may still be active. Please try again.
         </Alert>
       )}
     </div>

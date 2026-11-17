@@ -31,12 +31,12 @@ export function DeleteDocumentButton({
         }
       }}
       trigger={
-        <Button variant="danger" aria-label={`Удалить: ${document.title}`}>
-          Удалить
+        <Button variant="danger" aria-label={`Delete: ${document.title}`}>
+          Delete
         </Button>
       }
-      title="Удалить документ?"
-      description={`Документ «${document.title}» и его файл будут удалены без возможности восстановления.`}
+      title="Delete document?"
+      description={`Document «${document.title}» and its file will be permanently deleted and cannot be restored.`}
     >
       {mutation.isError && <Alert>{errorMessage(mutation.error)}</Alert>}
       <div className="actions">
@@ -45,7 +45,7 @@ export function DeleteDocumentButton({
           disabled={mutation.isPending}
           onClick={() => mutation.mutate(undefined)}
         >
-          {mutation.isPending ? "Удаление…" : "Удалить документ"}
+          {mutation.isPending ? "Deleting…" : "Delete document"}
         </Button>
       </div>
     </Dialog>

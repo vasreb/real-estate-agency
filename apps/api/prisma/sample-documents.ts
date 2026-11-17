@@ -16,6 +16,22 @@ export async function createSamplePdf(
   return new Uint8Array(await pdf.save({ useObjectStreams: false }));
 }
 
+/**
+ * Image-only PDF: one full-page JPEG per page and no text layer, as in a
+ * scanned original. The JPEG is a committed asset so seeding stays deterministic.
+ */
+export async function createScannedPdf(
+  jpeg: Uint8Array,
+): Promise<Uint8Array<ArrayBuffer>> {
+  const pdf = await PDFDocument.create({ updateMetadata: false });
+  const image = await pdf.embedJpg(jpeg);
+  const width = 595;
+  const height = (width * image.height) / image.width;
+  const page = pdf.addPage([width, height]);
+  page.drawImage(image, { x: 0, y: 0, width, height });
+  return new Uint8Array(await pdf.save({ useObjectStreams: false }));
+}
+
 function xmlEscape(value: string) {
   return value
     .replaceAll("&", "&amp;")

@@ -51,7 +51,7 @@ const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const date = (s) => (s ? s.split("-").reverse().join(".") : "—");
-const status = { signed: "Подписан", draft: "Черновик", unknown: "Не указан" };
+const status = { signed: "Signed", draft: "Draft", unknown: "Not specified" };
 const reviewed = [];
 const families = new Set();
 const cohorts = new Set();
@@ -67,9 +67,9 @@ try {
     },
   ]);
   await page.goto(`${origin}/deals`);
-  await page.getByRole("heading", { name: "Сделки", exact: true }).waitFor();
+  await page.getByRole("heading", { name: "Deals", exact: true }).waitFor();
   await page
-    .getByText("Обновление…", { exact: true })
+    .getByText("Updating…", { exact: true })
     .waitFor({ state: "hidden" });
   await page.screenshot({
     path: path.join(screenshots, "deal-list.png"),
@@ -78,7 +78,7 @@ try {
   for (const deal of deals) {
     await page.goto(`${origin}/deals/${deal.id}`);
     await page
-      .getByRole("heading", { name: `Сделка № ${deal.number}`, exact: false })
+      .getByRole("heading", { name: `Deal No. ${deal.number}`, exact: false })
       .waitFor();
     const text = await page.locator("main").innerText();
     if (
@@ -86,14 +86,14 @@ try {
       !text.includes(properties.find((p) => p.id === deal.property_id).address)
     )
       throw new Error(`Displayed property/principal mismatch: ${deal.id}`);
-    const table = page.getByRole("table", { name: "Документы сделки" });
+    const table = page.getByRole("table", { name: "Deal documents" });
     await table.waitFor();
     const documents = rows.filter((r) => r.mapped.deal_id === deal.id);
     if ((await table.locator("tbody tr").count()) !== documents.length)
       throw new Error(`Displayed document count mismatch: ${deal.id}`);
     if (
       !(await page
-        .getByRole("button", { name: "Загрузить", exact: true })
+        .getByRole("button", { name: "Upload", exact: true })
         .isVisible())
     )
       throw new Error("Actual operations-admin controls missing.");
@@ -111,7 +111,7 @@ try {
         (r) => r.mapped.id === row.mapped.parent_document_id,
       );
       const parentLabel = parent
-        ? `${parent.mapped.title} (№ ${parent.mapped.document_number})`
+        ? `${parent.mapped.title} (No. ${parent.mapped.document_number})`
         : "—";
       if (
         cells[0] !== row.mapped.title ||
@@ -125,7 +125,7 @@ try {
         const waiting = page.waitForEvent("download");
         await tr
           .getByRole("link", {
-            name: `Скачать: ${row.mapped.title}`,
+            name: `Download: ${row.mapped.title}`,
             exact: true,
           })
           .click();

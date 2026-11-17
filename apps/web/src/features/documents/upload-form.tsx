@@ -62,13 +62,13 @@ export function UploadDocumentForm({
       className="form panel"
       noValidate
       onSubmit={(event) => void onSubmit(event)}
-      aria-label="Загрузка документа"
+      aria-label="Upload document"
     >
-      <h3>Загрузить документ</h3>
+      <h3>Upload document</h3>
       {mutation.isError && <Alert>{errorMessage(mutation.error)}</Alert>}
       <div className="field">
         <label htmlFor="upload-file">
-          Файл (PDF или DOCX, до {MAX_FILE_LABEL})
+          File (PDF or DOCX, up to {MAX_FILE_LABEL})
         </label>
         <Input
           id="upload-file"
@@ -97,14 +97,14 @@ export function UploadDocumentForm({
       />
       <div className="actions">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Загрузка…" : "Загрузить"}
+          {mutation.isPending ? "Uploading…" : "Upload"}
         </Button>
         <Button
           variant="outline"
           onClick={onCancel}
           disabled={mutation.isPending}
         >
-          Отмена
+          Cancel
         </Button>
       </div>
     </form>

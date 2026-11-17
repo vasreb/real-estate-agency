@@ -6,10 +6,10 @@ import {
 
 describe("password hashing", () => {
   it("uses Argon2id with the OWASP baseline and never stores plaintext", async () => {
-    const hash = await hashPassword(" пароль с пробелами ");
+    const hash = await hashPassword(" password with spaces ");
     expect(hash).toMatch(/^\$argon2id\$v=19\$m=19456,t=2,p=1\$/);
-    expect(hash).not.toContain("пароль");
-    await expect(verifyPassword(hash, " пароль с пробелами ")).resolves.toBe(
+    expect(hash).not.toContain("password");
+    await expect(verifyPassword(hash, " password with spaces ")).resolves.toBe(
       true,
     );
   });

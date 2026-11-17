@@ -6,22 +6,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export const dealTypeLabel: Record<DealListItem["type"], string> = {
-  sale: "Продажа",
-  rental: "Аренда",
+  sale: "Sale",
+  rental: "Rental",
 };
 
 /** Each row opens the deal card; the number cell is the keyboard-accessible link. */
 export function DealsTable({ items }: { items: DealListItem[] }) {
   const router = useRouter();
   return (
-    <Table aria-label="Доступные сделки">
+    <Table aria-label="Available deals">
       <thead>
         <tr>
-          <th scope="col">Номер</th>
-          <th scope="col">Тип сделки</th>
-          <th scope="col">Клиент</th>
-          <th scope="col">Адрес объекта</th>
-          <th scope="col">Команда</th>
+          <th scope="col">Number</th>
+          <th scope="col">Deal type</th>
+          <th scope="col">Client</th>
+          <th scope="col">Property address</th>
+          <th scope="col">Team</th>
         </tr>
       </thead>
       <tbody>
@@ -53,19 +53,19 @@ export function DealSummary({ deal }: { deal: DealDetail }) {
   return (
     <dl className="summary">
       <div>
-        <dt>Тип сделки</dt>
+        <dt>Deal type</dt>
         <dd>{dealTypeLabel[deal.type]}</dd>
       </div>
       <div>
-        <dt>Клиент</dt>
+        <dt>Client</dt>
         <dd>{deal.client.name}</dd>
       </div>
       <div>
-        <dt>Адрес объекта</dt>
+        <dt>Property address</dt>
         <dd className="wrap-anywhere">{deal.property.address}</dd>
       </div>
       <div>
-        <dt>Команда</dt>
+        <dt>Team</dt>
         <dd>{deal.team.name}</dd>
       </div>
     </dl>

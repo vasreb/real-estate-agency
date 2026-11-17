@@ -34,7 +34,7 @@ async function seedDocument(data: {
   const document = await db.document.create({
     data: {
       dealId: ids.dealNorthRental,
-      title: "Исходное",
+      title: "Original",
       documentNumber: "N-1",
       documentDate: new Date("2026-01-10T00:00:00Z"),
       effectiveFrom: new Date("2026-02-01T00:00:00Z"),
@@ -71,7 +71,7 @@ describe("PATCH /api/documents/{documentId}", () => {
   it("updates provided fields, keeps omitted ones, clears nulls, and returns metadata", async () => {
     const id = await seedDocument({ type: "contract" });
     const response = await patch(id, {
-      title: " Новое название ",
+      title: " New title ",
       status: "signed",
       document_number: null,
       effective_from: null,
@@ -79,7 +79,7 @@ describe("PATCH /api/documents/{documentId}", () => {
     expect(response.statusCode).toBe(200);
     expect(documentMetadataSchema.parse(response.json())).toMatchObject({
       id,
-      title: "Новое название",
+      title: "New title",
       status: "signed",
       document_number: null,
       document_date: "2026-01-10",

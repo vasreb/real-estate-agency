@@ -5,7 +5,7 @@ import { Shell } from "@/_app/shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Агентство — сделки и документы",
+  title: "Agency — deals and documents",
   robots: { index: false, follow: false },
 };
 export default function RootLayout({ children }: { children: ReactNode }) {

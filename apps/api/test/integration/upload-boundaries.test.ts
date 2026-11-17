@@ -42,7 +42,7 @@ function paddedPdf(size: number) {
   return bytes;
 }
 const fields = [
-  { name: "title", value: `Граница ${SENTINEL}` },
+  { name: "title", value: `Boundary ${SENTINEL}` },
   { name: "type", value: "other" },
 ];
 const count = () =>

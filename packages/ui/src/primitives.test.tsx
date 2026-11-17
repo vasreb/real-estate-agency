@@ -13,17 +13,17 @@ describe("accessible shared primitives", () => {
           <Input />
         </label>
         <label>
-          Тип
+          Type
           <Select>
-            <option>Договор</option>
+            <option>Contract</option>
           </Select>
         </label>
-        <Alert>Ошибка</Alert>
+        <Alert>Error</Alert>
         <Table>
-          <caption>Документы</caption>
+          <caption>Documents</caption>
           <tbody>
             <tr>
-              <td>Договор</td>
+              <td>Contract</td>
             </tr>
           </tbody>
         </Table>
@@ -31,17 +31,17 @@ describe("accessible shared primitives", () => {
     );
     await user.type(screen.getByLabelText("Email"), "a@example.test");
     expect(screen.getByLabelText("Email")).toHaveValue("a@example.test");
-    expect(screen.getByLabelText("Тип")).toHaveValue("Договор");
-    expect(screen.getByRole("alert")).toHaveTextContent("Ошибка");
+    expect(screen.getByLabelText("Type")).toHaveValue("Contract");
+    expect(screen.getByRole("alert")).toHaveTextContent("Error");
     expect(
-      screen.getByRole("table", { name: "Документы" }),
+      screen.getByRole("table", { name: "Documents" }),
     ).toBeInTheDocument();
   });
   it("prevents clicks when disabled", async () => {
     const click = vi.fn();
     render(
       <Button disabled onClick={click}>
-        Сохранить
+        Save
       </Button>,
     );
     await userEvent.click(screen.getByRole("button"));
@@ -51,26 +51,26 @@ describe("accessible shared primitives", () => {
     const user = userEvent.setup();
     render(
       <Dialog
-        trigger={<Button>Удалить</Button>}
-        title="Удаление"
-        description="Подтвердите действие"
+        trigger={<Button>Delete</Button>}
+        title="Deletion"
+        description="Confirm the action"
       >
-        <Button variant="danger">Подтвердить</Button>
+        <Button variant="danger">Confirm</Button>
       </Dialog>,
     );
     await user.tab();
-    expect(screen.getByRole("button", { name: "Удалить" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Delete" })).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(
-      screen.getByRole("dialog", { name: "Удаление" }),
+      screen.getByRole("dialog", { name: "Deletion" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Подтвердить" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Confirm" })).toHaveFocus();
     await user.tab();
-    expect(screen.getByRole("button", { name: "Закрыть" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Close" })).toHaveFocus();
     await user.tab();
-    expect(screen.getByRole("button", { name: "Подтвердить" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Confirm" })).toHaveFocus();
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Удалить" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Delete" })).toHaveFocus();
   });
 });

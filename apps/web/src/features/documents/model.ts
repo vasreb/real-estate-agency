@@ -8,16 +8,16 @@ import {
 import { z } from "zod";
 import type { UploadInput } from "@/shared/api";
 
-const optionalText = z.string().trim().max(255, "Не более 255 символов");
-const optionalDate = z.union([z.literal(""), z.iso.date("Некорректная дата")]);
+const optionalText = z.string().trim().max(255, "Maximum 255 characters");
+const optionalDate = z.union([z.literal(""), z.iso.date("Invalid date")]);
 
 /** Form-level schema: inputs are strings; "" means "not set". */
 export const documentFormSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(1, "Укажите название")
-    .max(255, "Не более 255 символов"),
+    .min(1, "Enter a title")
+    .max(255, "Maximum 255 characters"),
   type: documentTypeSchema,
   document_number: optionalText,
   document_date: optionalDate,
@@ -52,16 +52,16 @@ export function valuesFromDocument(
   };
 }
 
-export const MAX_FILE_LABEL = "25 МБ";
+export const MAX_FILE_LABEL = "25 MB";
 const ACCEPTED_EXTENSIONS = /\.(pdf|docx)$/i;
 
 /** Client precheck only; the server validates size and content regardless. */
 export function fileProblem(file: File | null | undefined): string | null {
-  if (!file) return "Выберите файл";
+  if (!file) return "Select a file";
   if (file.size > MAX_FILE_BYTES)
-    return `Файл больше ${MAX_FILE_LABEL} (${MAX_FILE_BYTES.toLocaleString("ru-RU")} байт)`;
+    return `File is larger than ${MAX_FILE_LABEL} (${MAX_FILE_BYTES.toLocaleString("en-US")} bytes)`;
   if (!ACCEPTED_EXTENSIONS.test(file.name))
-    return "Допускаются только файлы PDF и DOCX";
+    return "Only PDF and DOCX files are allowed";
   return null;
 }
 

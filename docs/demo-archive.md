@@ -166,3 +166,10 @@ changed. Final agent review receipts are under
 `.omo/evidence/realistic-agency-archive/final-F1.json`, `final-F2.json`,
 `final-F3.md` and `final-F4.json`; technical verification is distinct from the
 owner's formal acceptance. Native Office layout remains unverified, not waived.
+
+## Image-only (scanned) originals
+
+Eight deals (241 archive documents) and the South team seed contract are stored as
+image-only PDFs, not text PDFs. The database was updated accordingly. See
+[scanned-originals](demo-archive-scanned.md) for the list, selection rule, method
+and known validator consequences.

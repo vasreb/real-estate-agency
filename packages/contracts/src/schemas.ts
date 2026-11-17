@@ -23,7 +23,7 @@ export const loginSchema = z.strictObject({
     .max(1024)
     .refine(
       (value) => new TextEncoder().encode(value).byteLength <= 1024,
-      "Пароль не должен превышать 1024 байта",
+      "Password must not exceed 1024 bytes",
     ),
 });
 export const createDocumentSchema = z.strictObject({

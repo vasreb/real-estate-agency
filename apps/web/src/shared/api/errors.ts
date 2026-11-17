@@ -35,27 +35,27 @@ export const isUnauthenticated = (error: unknown) =>
 /** User-facing messages; never echo server text or submitted values. */
 export function errorMessage(error: unknown): string {
   if (!(error instanceof ApiError))
-    return "Не удалось выполнить запрос. Повторите попытку.";
+    return "The request failed. Please try again.";
   switch (error.code) {
     case "NETWORK_ERROR":
-      return "Нет связи с сервером. Проверьте подключение и повторите попытку.";
+      return "Cannot reach the server. Check your connection and try again.";
     case "UNAUTHENTICATED":
-      return "Сессия завершена. Войдите снова.";
+      return "Your session has ended. Please sign in again.";
     case "FORBIDDEN":
-      return "Недостаточно прав для этого действия.";
+      return "You do not have permission for this action.";
     case "NOT_FOUND":
-      return "Запись не найдена или недоступна.";
+      return "The record was not found or is unavailable.";
     case "VALIDATION_ERROR":
-      return "Проверьте правильность заполнения полей.";
+      return "Please check the form fields.";
     case "DOCUMENT_REFERENCED":
-      return "Нельзя удалить договор, пока к нему привязаны допсоглашения. Сначала удалите или отвяжите их.";
+      return "The contract cannot be deleted while amendments are linked to it. Delete or unlink them first.";
     case "PAYLOAD_TOO_LARGE":
-      return "Файл слишком большой: допускается не более 25 МБ.";
+      return "The file is too large: the maximum size is 25 MB.";
     case "UNSUPPORTED_FILE_TYPE":
-      return "Допускаются только корректные файлы PDF и DOCX.";
+      return "Only valid PDF and DOCX files are allowed.";
     case "RATE_LIMITED":
-      return "Слишком много попыток. Повторите позже.";
+      return "Too many attempts. Please try again later.";
     default:
-      return "Внутренняя ошибка сервера. Повторите попытку позже.";
+      return "Internal server error. Please try again later.";
   }
 }

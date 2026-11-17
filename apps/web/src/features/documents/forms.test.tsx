@@ -23,8 +23,8 @@ const contract: DocumentMetadata = {
   id: "60000000-0000-4000-8000-000000000001",
   parent_document_id: null,
   type: "contract",
-  title: "Договор",
-  document_number: "Д-1",
+  title: "Contract",
+  document_number: "C-1",
   document_date: "2026-01-01",
   effective_from: null,
   status: "signed",
@@ -34,8 +34,8 @@ const amendment: DocumentMetadata = {
   id: "60000000-0000-4000-8000-000000000002",
   parent_document_id: contract.id,
   type: "amendment",
-  title: "ДС",
-  document_number: "ДС-1",
+  title: "Amendment",
+  document_number: "AMD-1",
   document_date: "2026-02-01",
   effective_from: "2026-03-01",
   status: "draft",
@@ -44,11 +44,11 @@ const otherDoc: DocumentMetadata = {
   ...contract,
   id: "60000000-0000-4000-8000-000000000003",
   type: "listing_sheet",
-  title: "Лист",
+  title: "Sheet",
 };
 const documents = [contract, amendment, otherDoc];
 const pdf = (size = 10) => {
-  const file = new File(["%PDF-"], "Договор.pdf", { type: "application/pdf" });
+  const file = new File(["%PDF-"], "Contract.pdf", { type: "application/pdf" });
   Object.defineProperty(file, "size", { value: size });
   return file;
 };
@@ -73,29 +73,24 @@ describe("upload form", () => {
     const { onDone, queryClient } = renderUpload(fakeApi({ uploadDocument }));
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");
     const user = userEvent.setup();
-    expect(screen.getByLabelText("Статус")).toHaveValue("unknown");
-    expect(screen.getByText(/до 25 МБ/)).toBeInTheDocument();
-    expect(
-      screen.queryByLabelText("Связанный договор"),
-    ).not.toBeInTheDocument();
-    await user.upload(screen.getByLabelText(/Файл/), pdf());
-    await user.type(screen.getByLabelText("Название"), " ДС ");
-    await user.selectOptions(screen.getByLabelText("Тип"), "amendment");
-    const parent = screen.getByLabelText("Связанный договор");
+    expect(screen.getByLabelText("Status")).toHaveValue("unknown");
+    expect(screen.getByText(/up to 25 MB/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Related contract")).not.toBeInTheDocument();
+    await user.upload(screen.getByLabelText(/File/), pdf());
+    await user.type(screen.getByLabelText("Title"), " Amendment ");
+    await user.selectOptions(screen.getByLabelText("Type"), "amendment");
+    const parent = screen.getByLabelText("Related contract");
     expect(
       [...parent.querySelectorAll("option")].map((o) => o.textContent),
-    ).toEqual(["Не выбран", "Договор (№ Д-1)"]);
+    ).toEqual(["Not selected", "Contract (No. C-1)"]);
     await user.selectOptions(parent, contract.id);
-    await user.type(
-      screen.getByLabelText("Дата вступления в силу"),
-      "2026-03-01",
-    );
-    await user.click(screen.getByRole("button", { name: "Загрузить" }));
+    await user.type(screen.getByLabelText("Effective date"), "2026-03-01");
+    await user.click(screen.getByRole("button", { name: "Upload" }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(uploadDocument).toHaveBeenCalledWith(
       dealId,
       {
-        title: "ДС",
+        title: "Amendment",
         type: "amendment",
         status: "unknown",
         effective_from: "2026-03-01",
@@ -110,15 +105,15 @@ describe("upload form", () => {
     const uploadDocument = vi.fn();
     renderUpload(fakeApi({ uploadDocument }));
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Загрузить" }));
-    expect(screen.getByLabelText("Название")).toHaveAccessibleDescription(
-      "Укажите название",
+    await user.click(screen.getByRole("button", { name: "Upload" }));
+    expect(screen.getByLabelText("Title")).toHaveAccessibleDescription(
+      "Enter a title",
     );
-    await user.type(screen.getByLabelText("Название"), "Большой");
-    await user.upload(screen.getByLabelText(/Файл/), pdf(25_000_001));
-    await user.click(screen.getByRole("button", { name: "Загрузить" }));
-    expect(screen.getByLabelText(/Файл/)).toHaveAccessibleDescription(
-      /Файл больше 25 МБ/,
+    await user.type(screen.getByLabelText("Title"), "Large");
+    await user.upload(screen.getByLabelText(/File/), pdf(25_000_001));
+    await user.click(screen.getByRole("button", { name: "Upload" }));
+    expect(screen.getByLabelText(/File/)).toHaveAccessibleDescription(
+      /File is larger than 25 MB/,
     );
     expect(uploadDocument).not.toHaveBeenCalled();
   });
@@ -126,18 +121,18 @@ describe("upload form", () => {
   it.each([
     [
       new ApiError(415, "UNSUPPORTED_FILE_TYPE"),
-      "Допускаются только корректные файлы PDF и DOCX.",
+      "Only valid PDF and DOCX files are allowed.",
     ],
-    [new ApiError(413, "PAYLOAD_TOO_LARGE"), "не более 25 МБ"],
-    [new ApiError(0, "NETWORK_ERROR"), "Нет связи с сервером"],
+    [new ApiError(413, "PAYLOAD_TOO_LARGE"), "the maximum size is 25 MB"],
+    [new ApiError(0, "NETWORK_ERROR"), "Cannot reach the server"],
   ])("shows the server rejection %s", async (error, text) => {
     renderUpload(
       fakeApi({ uploadDocument: vi.fn(() => Promise.reject(error)) }),
     );
     const user = userEvent.setup();
-    await user.upload(screen.getByLabelText(/Файл/), pdf());
-    await user.type(screen.getByLabelText("Название"), "Файл");
-    await user.click(screen.getByRole("button", { name: "Загрузить" }));
+    await user.upload(screen.getByLabelText(/File/), pdf());
+    await user.type(screen.getByLabelText("Title"), "File");
+    await user.click(screen.getByRole("button", { name: "Upload" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(text);
   });
 
@@ -151,11 +146,11 @@ describe("upload form", () => {
     );
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");
     const user = userEvent.setup();
-    await user.upload(screen.getByLabelText(/Файл/), pdf());
-    await user.type(screen.getByLabelText("Название"), "Файл");
-    await user.click(screen.getByRole("button", { name: "Загрузить" }));
+    await user.upload(screen.getByLabelText(/File/), pdf());
+    await user.type(screen.getByLabelText("Title"), "File");
+    await user.click(screen.getByRole("button", { name: "Upload" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Недостаточно прав",
+      "do not have permission",
     );
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["deal", dealId] });
   });
@@ -181,13 +176,13 @@ describe("edit form", () => {
     const patchDocument = vi.fn(() => Promise.resolve(amendment));
     const onDone = renderEdit(amendment, fakeApi({ patchDocument }));
     const user = userEvent.setup();
-    expect(screen.getByLabelText("Тип")).toHaveAttribute("readonly");
-    expect(screen.getByLabelText("Тип")).toHaveValue("Допсоглашение");
-    expect(screen.queryByLabelText(/Файл/)).not.toBeInTheDocument();
-    await user.clear(screen.getByLabelText("Номер"));
-    await user.clear(screen.getByLabelText("Дата вступления в силу"));
-    await user.selectOptions(screen.getByLabelText("Связанный договор"), "");
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
+    expect(screen.getByLabelText("Type")).toHaveAttribute("readonly");
+    expect(screen.getByLabelText("Type")).toHaveValue("Amendment");
+    expect(screen.queryByLabelText(/File/)).not.toBeInTheDocument();
+    await user.clear(screen.getByLabelText("Number"));
+    await user.clear(screen.getByLabelText("Effective date"));
+    await user.selectOptions(screen.getByLabelText("Related contract"), "");
+    await user.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(patchDocument).toHaveBeenCalledWith(amendment.id, {
       document_number: null,
@@ -199,12 +194,8 @@ describe("edit form", () => {
   it("offers only other contracts of this deal and sends an empty patch when unchanged", async () => {
     const patchDocument = vi.fn(() => Promise.resolve(contract));
     renderEdit(contract, fakeApi({ patchDocument }));
-    expect(
-      screen.queryByLabelText("Связанный договор"),
-    ).not.toBeInTheDocument();
-    await userEvent
-      .setup()
-      .click(screen.getByRole("button", { name: "Сохранить" }));
+    expect(screen.queryByLabelText("Related contract")).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
       expect(patchDocument).toHaveBeenCalledWith(contract.id, {}),
     );
@@ -214,9 +205,9 @@ describe("edit form", () => {
     const patchDocument = vi.fn();
     renderEdit(contract, fakeApi({ patchDocument }));
     const user = userEvent.setup();
-    await user.clear(screen.getByLabelText("Название"));
-    await user.click(screen.getByRole("button", { name: "Сохранить" }));
-    expect(screen.getByLabelText("Название")).toHaveAttribute(
+    await user.clear(screen.getByLabelText("Title"));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByLabelText("Title")).toHaveAttribute(
       "aria-invalid",
       "true",
     );
@@ -232,17 +223,17 @@ describe("delete dialog", () => {
       fakeApi({ deleteDocument }),
     );
     const user = userEvent.setup();
-    const trigger = screen.getByRole("button", { name: "Удалить: ДС" });
+    const trigger = screen.getByRole("button", { name: "Delete: Amendment" });
     await user.click(trigger);
     expect(
-      screen.getByRole("dialog", { name: "Удалить документ?" }),
+      screen.getByRole("dialog", { name: "Delete document?" }),
     ).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
     expect(deleteDocument).not.toHaveBeenCalled();
     await user.click(trigger);
-    await user.click(screen.getByRole("button", { name: "Удалить документ" }));
+    await user.click(screen.getByRole("button", { name: "Delete document" }));
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
@@ -259,10 +250,10 @@ describe("delete dialog", () => {
       }),
     );
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Удалить: Договор" }));
-    await user.click(screen.getByRole("button", { name: "Удалить документ" }));
+    await user.click(screen.getByRole("button", { name: "Delete: Contract" }));
+    await user.click(screen.getByRole("button", { name: "Delete document" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "привязаны допсоглашения",
+      "amendments are linked",
     );
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });

@@ -5,7 +5,7 @@ export function AppHeader() {
   return (
     <header className="app-header">
       <Link href="/deals" className="brand">
-        Агентство
+        Agency
       </Link>
       <LogoutButton />
     </header>

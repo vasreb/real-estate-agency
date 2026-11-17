@@ -13,8 +13,8 @@ beforeEach(() => {
 async function fillAndSubmit(email: string, password: string) {
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("Email"), email);
-  await user.type(screen.getByLabelText("Пароль"), password);
-  await user.click(screen.getByRole("button", { name: "Войти" }));
+  await user.type(screen.getByLabelText("Password"), password);
+  await user.click(screen.getByRole("button", { name: "Sign in" }));
   return user;
 }
 
@@ -42,25 +42,25 @@ describe("login form", () => {
     renderWithProviders(<LoginForm />, fakeApi({ login }));
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: "Войти" }));
+      .click(screen.getByRole("button", { name: "Sign in" }));
     const email = screen.getByLabelText("Email");
     expect(email).toHaveAttribute("aria-invalid", "true");
-    expect(email).toHaveAccessibleDescription("Введите корректный email.");
-    expect(screen.getByLabelText("Пароль")).toHaveAccessibleDescription(
-      "Введите пароль.",
+    expect(email).toHaveAccessibleDescription("Enter a valid email.");
+    expect(screen.getByLabelText("Password")).toHaveAccessibleDescription(
+      "Enter your password.",
     );
     expect(login).not.toHaveBeenCalled();
   });
 
   it.each([
-    [new ApiError(401, "UNAUTHENTICATED"), "Неверный email или пароль."],
+    [new ApiError(401, "UNAUTHENTICATED"), "Invalid email or password."],
     [
       new ApiError(429, "RATE_LIMITED"),
-      "Слишком много попыток. Повторите позже.",
+      "Too many attempts. Please try again later.",
     ],
     [
       new ApiError(0, "NETWORK_ERROR"),
-      "Нет связи с сервером. Проверьте подключение и повторите попытку.",
+      "Cannot reach the server. Check your connection and try again.",
     ],
   ])(
     "shows a generic error for %s without echoing credentials",
@@ -83,7 +83,7 @@ describe("login form", () => {
     );
     renderWithProviders(<LoginForm />, fakeApi({ login }));
     const user = await fillAndSubmit("a@agency.test", "secret-pass");
-    const button = await screen.findByRole("button", { name: "Вход…" });
+    const button = await screen.findByRole("button", { name: "Signing in…" });
     expect(button).toBeDisabled();
     await user.keyboard("{Enter}");
     expect(login).toHaveBeenCalledTimes(1);
@@ -102,7 +102,7 @@ describe("logout", () => {
     queryClient.setQueryData(["deals"], { items: ["private"] });
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: "Выйти" }));
+      .click(screen.getByRole("button", { name: "Sign out" }));
     await waitFor(() =>
       expect(routerMock.replace).toHaveBeenCalledWith("/login"),
     );
@@ -119,11 +119,11 @@ describe("logout", () => {
     );
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: "Выйти" }));
+      .click(screen.getByRole("button", { name: "Sign out" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "сессия может быть активна",
+      "the session may still be active",
     );
     expect(routerMock.replace).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Выйти" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
   });
 });

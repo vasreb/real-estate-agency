@@ -13,7 +13,7 @@ describe("PATCH → update data", () => {
   });
 
   it.each([
-    ["title", " Новое ", { title: "Новое" }],
+    ["title", " New ", { title: "New" }],
     ["status", "signed", { status: "signed" }],
     ["document_number", "12", { documentNumber: "12" }],
     ["document_number", null, { documentNumber: null }],

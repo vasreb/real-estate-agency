@@ -179,7 +179,7 @@ describe("test seed", () => {
       sha256(await createSamplePdf("Sale contract 2026-001 (North team)")),
     );
     expect(sha256(amendment!.fileData)).toBe(
-      sha256(createSampleDocx("Дополнительное соглашение № 1")),
+      sha256(createSampleDocx("Amendment No. 1")),
     );
     const pdf = await PDFDocument.load(north!.fileData);
     expect(pdf.getPageCount()).toBe(1);

@@ -40,18 +40,18 @@ export function DealDetailPage({ initialData }: { initialData: DealDetail }) {
       <AppHeader />
       <main id="main" className="page">
         <p>
-          <Link href="/deals">← К списку сделок</Link>
+          <Link href="/deals">← Back to deals</Link>
         </p>
         <h1>
-          Сделка № {deal.number} · {dealTypeLabel[deal.type]}
+          Deal No. {deal.number} · {dealTypeLabel[deal.type]}
         </h1>
         <DealSummary deal={deal} />
         {query.isError && <Alert>{errorMessage(query.error)}</Alert>}
         <section aria-labelledby="documents-heading">
           <div className="section-header">
-            <h2 id="documents-heading">Документы</h2>
+            <h2 id="documents-heading">Documents</h2>
             {isAdmin && !uploading && (
-              <Button onClick={() => setUploading(true)}>Загрузить</Button>
+              <Button onClick={() => setUploading(true)}>Upload</Button>
             )}
           </div>
           {isAdmin && uploading && (
@@ -73,7 +73,7 @@ export function DealDetailPage({ initialData }: { initialData: DealDetail }) {
             />
           )}
           {deal.documents.length === 0 ? (
-            <p className="empty">Документов пока нет</p>
+            <p className="empty">No documents yet</p>
           ) : (
             <DocumentsTable
               documents={deal.documents}
@@ -83,10 +83,10 @@ export function DealDetailPage({ initialData }: { initialData: DealDetail }) {
                       <>
                         <Button
                           variant="outline"
-                          aria-label={`Редактировать: ${document.title}`}
+                          aria-label={`Edit: ${document.title}`}
                           onClick={() => setEditingId(document.id)}
                         >
-                          Редактировать
+                          Edit
                         </Button>
                         <DeleteDocumentButton
                           dealId={deal.id}

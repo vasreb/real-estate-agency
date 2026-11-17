@@ -36,12 +36,12 @@ describe("GET /api/deals/{dealId}", () => {
       number: "2026-001",
       type: "sale",
       role: "admin",
-      client: { id: ids.clientCompany, name: "ООО «Ромашка»" },
+      client: { id: ids.clientCompany, name: "Romashka LLC" },
       property: {
         id: ids.propertyCentral,
-        address: "г. Москва, ул. Тверская, д. 1, кв. 10",
+        address: "Moscow, Tverskaya St., 1, apt. 10",
       },
-      team: { id: ids.teamNorth, name: "Команда «Север»" },
+      team: { id: ids.teamNorth, name: "Team North" },
     });
     const contract = body.documents.find((d) => d.id === ids.docNorthContract);
     const amendment = body.documents.find(
@@ -50,12 +50,12 @@ describe("GET /api/deals/{dealId}", () => {
     expect(contract).toMatchObject({
       type: "contract",
       parent_document_id: null,
-      document_number: "ДКП-2026-001",
+      document_number: "PA-2026-001",
       document_date: "2026-01-15",
       effective_from: null,
       status: "signed",
       mime_type: PDF_MIME,
-      file_name: "Договор купли-продажи.pdf",
+      file_name: "Purchase agreement.pdf",
     });
     expect(amendment).toMatchObject({
       type: "amendment",

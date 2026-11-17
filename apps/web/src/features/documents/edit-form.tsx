@@ -55,9 +55,9 @@ export function EditDocumentForm({
       className="form panel"
       noValidate
       onSubmit={(event) => void onSubmit(event)}
-      aria-label={`Редактирование: ${document.title}`}
+      aria-label={`Editing: ${document.title}`}
     >
-      <h3>Редактировать документ</h3>
+      <h3>Edit document</h3>
       {mutation.isError && <Alert>{errorMessage(mutation.error)}</Alert>}
       <DocumentFields
         idPrefix={`edit-${document.id}`}
@@ -69,14 +69,14 @@ export function EditDocumentForm({
       />
       <div className="actions">
         <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Сохранение…" : "Сохранить"}
+          {mutation.isPending ? "Saving…" : "Save"}
         </Button>
         <Button
           variant="outline"
           onClick={onCancel}
           disabled={mutation.isPending}
         >
-          Отмена
+          Cancel
         </Button>
       </div>
     </form>

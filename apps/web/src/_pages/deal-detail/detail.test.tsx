@@ -16,17 +16,17 @@ const detail: DealDetail = {
   number: "2026-001",
   type: "sale",
   role: "member",
-  client: { id: "c", name: "ООО «Ромашка»" },
-  property: { id: "p", address: "г. Москва, ул. Тверская, д. 1" },
-  team: { id: "t", name: "Команда «Север»" },
+  client: { id: "c", name: "Romashka LLC" },
+  property: { id: "p", address: "Moscow, Tverskaya St., 1" },
+  team: { id: "t", name: "Team North" },
   documents: [
     {
       id: contractId,
       deal_id: "50000000-0000-4000-8000-000000000001",
       parent_document_id: null,
       type: "contract",
-      title: "Договор купли-продажи",
-      document_number: "ДКП-1",
+      title: "Purchase agreement",
+      document_number: "PA-1",
       document_date: "2026-01-01",
       effective_from: null,
       status: "signed",
@@ -58,26 +58,24 @@ describe("/deals/[id] card", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Сделка № 2026-001 · Продажа",
+        name: "Deal No. 2026-001 · Sale",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("ООО «Ромашка»")).toBeInTheDocument();
-    expect(
-      screen.getByText("г. Москва, ул. Тверская, д. 1"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Команда «Север»")).toBeInTheDocument();
-    const table = screen.getByRole("table", { name: "Документы сделки" });
+    expect(screen.getByText("Romashka LLC")).toBeInTheDocument();
+    expect(screen.getByText("Moscow, Tverskaya St., 1")).toBeInTheDocument();
+    expect(screen.getByText("Team North")).toBeInTheDocument();
+    const table = screen.getByRole("table", { name: "Deal documents" });
     const [, contractRow, amendmentRow] = within(table).getAllByRole("row");
     expect(
       [...contractRow!.querySelectorAll("td")]
         .slice(0, 7)
         .map((c) => c.textContent),
     ).toEqual([
-      "Договор купли-продажи",
-      "Договор",
-      "ДКП-1",
+      "Purchase agreement",
+      "Contract",
+      "PA-1",
       "01.01.2026",
-      "Подписан",
+      "Signed",
       "—",
       "—",
     ]);
@@ -86,21 +84,21 @@ describe("/deals/[id] card", () => {
         .slice(1, 7)
         .map((c) => c.textContent),
     ).toEqual([
-      "Допсоглашение",
+      "Amendment",
       "—",
       "—",
-      "Не указан",
+      "Not specified",
       "01.03.2026",
-      "Договор купли-продажи (№ ДКП-1)",
+      "Purchase agreement (No. PA-1)",
     ]);
   });
 
   it("gives members only same-origin download links", () => {
     renderWithProviders(<DealDetailPage initialData={detail} />);
     expect(
-      screen.getByRole("link", { name: "Скачать: Договор купли-продажи" }),
+      screen.getByRole("link", { name: "Download: Purchase agreement" }),
     ).toHaveAttribute("href", `/api/documents/${contractId}/file`);
-    for (const name of ["Загрузить", /Редактировать/, /Удалить/])
+    for (const name of ["Upload", /Edit/, /Delete/])
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
   });
 
@@ -108,15 +106,9 @@ describe("/deals/[id] card", () => {
     renderWithProviders(
       <DealDetailPage initialData={{ ...detail, role: "admin" }} />,
     );
-    expect(
-      screen.getByRole("button", { name: "Загрузить" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getAllByRole("button", { name: /^Редактировать:/ }),
-    ).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: /^Удалить:/ })).toHaveLength(
-      2,
-    );
+    expect(screen.getByRole("button", { name: "Upload" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Edit:/ })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: /^Delete:/ })).toHaveLength(2);
   });
 
   it("renders malicious titles as text, never as HTML", () => {
@@ -133,6 +125,6 @@ describe("/deals/[id] card", () => {
     renderWithProviders(
       <DealDetailPage initialData={{ ...detail, documents: [] }} />,
     );
-    expect(screen.getByText("Документов пока нет")).toBeInTheDocument();
+    expect(screen.getByText("No documents yet")).toBeInTheDocument();
   });
 });

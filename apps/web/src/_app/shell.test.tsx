@@ -7,14 +7,13 @@ describe("Russian application shell", () => {
     render(
       <Shell>
         <main id="main">
-          <h1>Сделки</h1>
+          <h1>Deals</h1>
         </main>
       </Shell>,
     );
-    expect(screen.getByRole("link", { name: "К содержимому" })).toHaveAttribute(
-      "href",
-      "#main",
-    );
-    expect(screen.getByRole("main")).toHaveTextContent("Сделки");
+    expect(
+      screen.getByRole("link", { name: "Skip to content" }),
+    ).toHaveAttribute("href", "#main");
+    expect(screen.getByRole("main")).toHaveTextContent("Deals");
   });
 });

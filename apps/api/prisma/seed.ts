@@ -1,4 +1,5 @@
 import type { Prisma } from "../src/generated/prisma/client.js";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -9,6 +10,7 @@ import { hashPassword, normalizeEmail } from "../src/modules/auth/index.js";
 import {
   createSampleDocx,
   createSamplePdf,
+  createScannedPdf,
   DOCX_MIME,
   PDF_MIME,
 } from "./sample-documents.js";
@@ -27,6 +29,13 @@ export type SeedMode = "development" | "test";
 export type SeedPasswords = Partial<Record<SeedAccount["passwordKey"], string>>;
 
 const MIN_PASSWORD_LENGTH = 12;
+
+/** Scanned (image-only) original of the South team contract. */
+const scannedSouthContractPath = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "assets",
+  "south-contract-scan.jpg",
+);
 
 /**
  * Validates the environment before any database connection is opened.
@@ -87,8 +96,8 @@ export async function runSeed(
   );
   const [contractPdf, amendmentDocx, southPdf] = await Promise.all([
     createSamplePdf("Sale contract 2026-001 (North team)"),
-    Promise.resolve(createSampleDocx("Дополнительное соглашение № 1")),
-    createSamplePdf("Sale contract 2026-001 (South team)"),
+    Promise.resolve(createSampleDocx("Amendment No. 1")),
+    readFile(scannedSouthContractPath).then((jpeg) => createScannedPdf(jpeg)),
   ]);
   await db.$transaction(
     async (tx) => {
@@ -137,11 +146,11 @@ export async function runSeed(
           id: ids.docNorthContract,
           dealId: ids.dealNorthSale,
           type: "contract" as const,
-          title: "Договор купли-продажи",
-          documentNumber: "ДКП-2026-001",
+          title: "Purchase agreement",
+          documentNumber: "PA-2026-001",
           documentDate: new Date("2026-01-15T00:00:00Z"),
           status: "signed" as const,
-          fileName: "Договор купли-продажи.pdf",
+          fileName: "Purchase agreement.pdf",
           mimeType: PDF_MIME,
           fileData: contractPdf,
         },
@@ -150,12 +159,12 @@ export async function runSeed(
           dealId: ids.dealNorthSale,
           parentDocumentId: ids.docNorthContract,
           type: "amendment" as const,
-          title: "Дополнительное соглашение № 1",
-          documentNumber: "ДС-1",
+          title: "Amendment No. 1",
+          documentNumber: "AMD-1",
           documentDate: new Date("2026-02-20T00:00:00Z"),
           effectiveFrom: new Date("2026-03-01T00:00:00Z"),
           status: "draft" as const,
-          fileName: "Допсоглашение 1.docx",
+          fileName: "Amendment 1.docx",
           mimeType: DOCX_MIME,
           fileData: amendmentDocx,
         },
@@ -163,7 +172,7 @@ export async function runSeed(
           id: ids.docSouthContract,
           dealId: ids.dealSouthSale,
           type: "contract" as const,
-          title: "Договор купли-продажи",
+          title: "Purchase agreement",
           status: "unknown" as const,
           fileName: "contract-south.pdf",
           mimeType: PDF_MIME,

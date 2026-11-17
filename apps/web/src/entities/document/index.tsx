@@ -4,16 +4,16 @@ import type { ReactNode } from "react";
 import { documentFileUrl } from "@/shared/api";
 
 export const documentTypeLabel: Record<DocumentMetadata["type"], string> = {
-  contract: "Договор",
-  amendment: "Допсоглашение",
-  listing_sheet: "Лист объекта",
-  handover_report: "Акт приёма-передачи",
-  other: "Другое",
+  contract: "Contract",
+  amendment: "Amendment",
+  listing_sheet: "Property sheet",
+  handover_report: "Handover report",
+  other: "Other",
 };
 export const documentStatusLabel: Record<DocumentMetadata["status"], string> = {
-  draft: "Черновик",
-  signed: "Подписан",
-  unknown: "Не указан",
+  draft: "Draft",
+  signed: "Signed",
+  unknown: "Not specified",
 };
 export const EMPTY = "—";
 
@@ -26,7 +26,7 @@ export function formatDate(value: string | null): string {
 
 export function contractLabel(document: DocumentMetadata): string {
   return document.document_number
-    ? `${document.title} (№ ${document.document_number})`
+    ? `${document.title} (No. ${document.document_number})`
     : document.title;
 }
 
@@ -39,17 +39,17 @@ export function DocumentsTable({
 }) {
   const byId = new Map(documents.map((d) => [d.id, d]));
   return (
-    <Table aria-label="Документы сделки">
+    <Table aria-label="Deal documents">
       <thead>
         <tr>
-          <th scope="col">Название</th>
-          <th scope="col">Тип</th>
-          <th scope="col">Номер</th>
-          <th scope="col">Дата</th>
-          <th scope="col">Статус</th>
-          <th scope="col">Вступает в силу</th>
-          <th scope="col">Связанный договор</th>
-          <th scope="col">Действия</th>
+          <th scope="col">Title</th>
+          <th scope="col">Type</th>
+          <th scope="col">Number</th>
+          <th scope="col">Date</th>
+          <th scope="col">Status</th>
+          <th scope="col">Effective</th>
+          <th scope="col">Related contract</th>
+          <th scope="col">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -72,9 +72,9 @@ export function DocumentsTable({
                     className="button button-outline"
                     href={documentFileUrl(document.id)}
                     download
-                    aria-label={`Скачать: ${document.title}`}
+                    aria-label={`Download: ${document.title}`}
                   >
-                    Скачать
+                    Download
                   </a>
                   {renderActions?.(document)}
                 </div>

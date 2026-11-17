@@ -53,14 +53,14 @@ export async function loginViaUi(
 ) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(account.email);
-  await page.getByLabel("Пароль").fill(account.password);
-  await page.getByRole("button", { name: "Войти" }).click();
+  await page.getByLabel("Password").fill(account.password);
+  await page.getByRole("button", { name: "Sign in" }).click();
   await page.waitForURL("**/deals");
-  await expect(page.getByRole("heading", { name: "Сделки" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Deals" })).toBeVisible();
 }
 
 export async function logoutViaUi(page: Page) {
-  await page.getByRole("button", { name: "Выйти" }).click();
+  await page.getByRole("button", { name: "Sign out" }).click();
   await page.waitForURL("**/login");
 }
 
@@ -71,7 +71,7 @@ export const originHeader = () => ({
 /** The documents-table row whose title cell matches exactly. */
 export function documentRow(page: Page, title: string): Locator {
   return page
-    .getByRole("table", { name: "Документы сделки" })
+    .getByRole("table", { name: "Deal documents" })
     .getByRole("row")
     .filter({ has: page.getByRole("cell", { name: title, exact: true }) });
 }

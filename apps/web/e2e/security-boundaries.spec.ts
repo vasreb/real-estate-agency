@@ -39,7 +39,7 @@ function upload(page: Page, bytes: Buffer, name = "boundary.pdf") {
   return page.request.post(`/api/deals/${ids.dealNorthRental}/documents`, {
     headers: originHeader(),
     multipart: {
-      title: `Граница ${bytes.length}`,
+      title: `Boundary ${bytes.length}`,
       type: "other",
       file: { name, mimeType: PDF, buffer: bytes },
     },
@@ -200,7 +200,7 @@ test("proxy: a foreign deal page is a real 404 before any streamed 200", async (
     headers: { accept: "text/html" },
   });
   expect(response.status()).toBe(404);
-  expect(await response.text()).toContain("Запись не найдена");
+  expect(await response.text()).toContain("Record not found");
 });
 
 // Keep last: it exhausts the per-IP login budget of the loopback client.

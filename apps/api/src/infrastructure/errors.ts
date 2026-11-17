@@ -2,15 +2,15 @@ import type { ApiErrorCode } from "@agency/contracts";
 import { ZodError } from "zod";
 
 const messages: Record<ApiErrorCode, string> = {
-  VALIDATION_ERROR: "Некорректные данные запроса",
-  UNAUTHENTICATED: "Требуется вход в систему",
-  FORBIDDEN: "Недостаточно прав для выполнения операции",
-  NOT_FOUND: "Запись не найдена",
-  DOCUMENT_REFERENCED: "Сначала удалите или отвяжите допсоглашения",
-  PAYLOAD_TOO_LARGE: "Превышен допустимый размер запроса",
-  UNSUPPORTED_FILE_TYPE: "Допускаются только корректные файлы PDF и DOCX",
-  RATE_LIMITED: "Слишком много запросов. Повторите позже",
-  INTERNAL_ERROR: "Внутренняя ошибка сервера",
+  VALIDATION_ERROR: "Invalid request data",
+  UNAUTHENTICATED: "Sign-in required",
+  FORBIDDEN: "You do not have permission to perform this operation",
+  NOT_FOUND: "Record not found",
+  DOCUMENT_REFERENCED: "Delete or unlink the amendments first",
+  PAYLOAD_TOO_LARGE: "Request size limit exceeded",
+  UNSUPPORTED_FILE_TYPE: "Only valid PDF and DOCX files are allowed",
+  RATE_LIMITED: "Too many requests. Try again later",
+  INTERNAL_ERROR: "Internal server error",
 };
 const statuses: Record<ApiErrorCode, number> = {
   VALIDATION_ERROR: 400,

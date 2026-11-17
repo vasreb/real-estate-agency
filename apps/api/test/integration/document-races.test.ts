@@ -81,7 +81,7 @@ const patchParent = (amendment: string, parent: string) =>
   });
 const uploadLinked = (parent: string) => {
   const body = multipart([
-    { name: "title", value: "ДС" },
+    { name: "title", value: "Amendment" },
     { name: "type", value: "amendment" },
     { name: "parent_document_id", value: parent },
     { name: "file", fileName: "ds.pdf", contentType: PDF_MIME, bytes: pdf },

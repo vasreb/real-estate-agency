@@ -46,7 +46,7 @@ async function expectViolation(
 
 const insertDocument = `INSERT INTO documents
   (id, deal_id, parent_document_id, type, title, file_name, mime_type, file_data)
-  VALUES ($1, $2, $3, $4, 'Тест', 'test.pdf', 'application/pdf', '\\x25504446')`;
+  VALUES ($1, $2, $3, $4, 'Test', 'test.pdf', 'application/pdf', '\\x25504446')`;
 
 describe("PostgreSQL constraints from the initial migration", () => {
   it("allows a valid amendment linked to a contract of the same deal", async () => {

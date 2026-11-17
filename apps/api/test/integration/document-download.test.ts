@@ -35,7 +35,7 @@ describe("GET /api/documents/{documentId}/file", () => {
     expect(response.headers["x-content-type-options"]).toBe("nosniff");
     expect(response.headers["cache-control"]).toBe("private, no-store");
     expect(response.headers["content-disposition"]).toBe(
-      `attachment; filename="${"Договор купли-продажи.pdf".replace(/[^ -~]/g, "_")}"; filename*=UTF-8''${encodeURIComponent("Договор купли-продажи.pdf")}`,
+      `attachment; filename="${"Purchase agreement.pdf".replace(/[^ -~]/g, "_")}"; filename*=UTF-8''${encodeURIComponent("Purchase agreement.pdf")}`,
     );
   });
 
@@ -55,7 +55,7 @@ describe("GET /api/documents/{documentId}/file", () => {
       data: {
         dealId: ids.dealNorthRental,
         type: "other",
-        title: "Злой",
+        title: "Evil",
         fileName: 'a"\r\nSet-Cookie: x=1;‮/../..\\evil.pdf',
         mimeType: PDF_MIME,
         fileData: await createSamplePdf("evil"),

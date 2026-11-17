@@ -19,7 +19,7 @@ type FormValues = z.input<typeof loginSchema>;
 
 function loginErrorMessage(error: unknown) {
   if (error instanceof ApiError && error.status === 401)
-    return "Неверный email или пароль.";
+    return "Invalid email or password.";
   return errorMessage(error);
 }
 
@@ -59,7 +59,7 @@ export function LoginForm() {
       className="form"
       noValidate
       onSubmit={(event) => void handleSubmit(submit)(event)}
-      aria-label="Вход"
+      aria-label="Sign in"
     >
       {failure && <Alert>{failure}</Alert>}
       <div className="field">
@@ -74,12 +74,12 @@ export function LoginForm() {
         />
         {errors.email && (
           <p id="login-email-error" className="field-error">
-            Введите корректный email.
+            Enter a valid email.
           </p>
         )}
       </div>
       <div className="field">
-        <label htmlFor="login-password">Пароль</label>
+        <label htmlFor="login-password">Password</label>
         <Input
           id="login-password"
           type="password"
@@ -92,12 +92,12 @@ export function LoginForm() {
         />
         {errors.password && (
           <p id="login-password-error" className="field-error">
-            Введите пароль.
+            Enter your password.
           </p>
         )}
       </div>
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Вход…" : "Войти"}
+        {isSubmitting ? "Signing in…" : "Sign in"}
       </Button>
     </form>
   );

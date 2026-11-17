@@ -20,7 +20,7 @@ const db = openDatabase();
 const app = createTestApp(db);
 let admin: string;
 const pdf = await createSamplePdf("upload test");
-const docx = createSampleDocx("Тестовое допсоглашение");
+const docx = createSampleDocx("Test amendment");
 const created: string[] = [];
 
 beforeAll(async () => {
@@ -40,7 +40,7 @@ const url = (dealId: string = ids.dealNorthRental) =>
 const count = () => db.document.count();
 const filePart = (
   bytes: Uint8Array = pdf,
-  fileName = "Договор.pdf",
+  fileName = "Contract.pdf",
   contentType = "application/pdf",
 ): Part => ({ name: "file", fileName, contentType, bytes });
 
@@ -82,7 +82,7 @@ describe("POST /api/deals/{dealId}/documents — success", () => {
       const response = track(
         await upload(
           order(filePart(), [
-            { name: "title", value: "  Договор аренды  " },
+            { name: "title", value: "  Rental contract  " },
             { name: "type", value: "contract" },
             { name: "document_date", value: "2026-05-01" },
           ]),
@@ -91,14 +91,14 @@ describe("POST /api/deals/{dealId}/documents — success", () => {
       expect(response.statusCode).toBe(201);
       expect(response.json()).toMatchObject({
         deal_id: ids.dealNorthRental,
-        title: "Договор аренды",
+        title: "Rental contract",
         type: "contract",
         status: "unknown",
         document_date: "2026-05-01",
         effective_from: null,
         parent_document_id: null,
         mime_type: PDF_MIME,
-        file_name: "Договор.pdf",
+        file_name: "Contract.pdf",
       });
       expect(response.body).not.toContain("file_data");
     },
@@ -107,7 +107,7 @@ describe("POST /api/deals/{dealId}/documents — success", () => {
   it("detects DOCX by content regardless of declared MIME/extension and links it to a same-deal contract", async () => {
     const contract = track(
       await upload([
-        { name: "title", value: "Договор" },
+        { name: "title", value: "Contract" },
         { name: "type", value: "contract" },
         filePart(),
       ]),
@@ -115,10 +115,10 @@ describe("POST /api/deals/{dealId}/documents — success", () => {
     const response = track(
       await upload([
         { name: "type", value: "amendment" },
-        { name: "title", value: "ДС" },
+        { name: "title", value: "Amendment" },
         { name: "parent_document_id", value: contract.id },
         { name: "status", value: "signed" },
-        filePart(docx, "../../etc/ДС.pdf", "application/pdf"),
+        filePart(docx, "../../etc/AMD.pdf", "application/pdf"),
       ]),
     );
     expect(response.statusCode).toBe(201);
@@ -126,7 +126,7 @@ describe("POST /api/deals/{dealId}/documents — success", () => {
       mime_type: DOCX_MIME,
       parent_document_id: contract.id,
       status: "signed",
-      file_name: "ДС.pdf",
+      file_name: "AMD.pdf",
     });
     const stored = await db.document.findUniqueOrThrow({
       where: { id: response.json<{ id: string }>().id },
@@ -139,7 +139,7 @@ describe("POST /api/deals/{dealId}/documents — success", () => {
     const padded = Buffer.alloc(MAX_FILE_BYTES, 0x20);
     Buffer.from(pdf).copy(padded);
     const fields: Part[] = [
-      { name: "title", value: "Граница" },
+      { name: "title", value: "Boundary" },
       { name: "type", value: "other" },
     ];
     const ok = track(await upload([...fields, filePart(padded)]));
@@ -157,7 +157,7 @@ describe("POST /api/deals/{dealId}/documents — success", () => {
 
 describe("POST /api/deals/{dealId}/documents — rejections leave no row", () => {
   const valid: Part[] = [
-    { name: "title", value: "Документ" },
+    { name: "title", value: "Document" },
     { name: "type", value: "other" },
   ];
   let before: number;
@@ -240,7 +240,7 @@ describe("POST /api/deals/{dealId}/documents — rejections leave no row", () =>
     [
       "oversized field",
       [
-        { name: "title", value: "я".repeat(5000) },
+        { name: "title", value: "é".repeat(5000) },
         { name: "type", value: "other" },
         filePart(),
       ],
@@ -254,7 +254,7 @@ describe("POST /api/deals/{dealId}/documents — rejections leave no row", () =>
     [
       "foreign-deal parent",
       [
-        { name: "title", value: "ДС" },
+        { name: "title", value: "Amendment" },
         { name: "type", value: "amendment" },
         { name: "parent_document_id", value: ids.docSouthContract },
         filePart(),

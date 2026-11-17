@@ -62,16 +62,16 @@ export const multiTeamAccount: SeedAccount = {
 };
 
 export const teams = [
-  { id: ids.teamNorth, name: "Команда «Север»" },
-  { id: ids.teamSouth, name: "Команда «Юг»" },
+  { id: ids.teamNorth, name: "Team North" },
+  { id: ids.teamSouth, name: "Team South" },
 ];
 export const clients = [
-  { id: ids.clientCompany, name: "ООО «Ромашка»" },
-  { id: ids.clientPerson, name: "Иванова Анна Сергеевна" },
+  { id: ids.clientCompany, name: "Romashka LLC" },
+  { id: ids.clientPerson, name: "Anna Sergeyevna Ivanova" },
 ];
 export const properties = [
-  { id: ids.propertyCentral, address: "г. Москва, ул. Тверская, д. 1, кв. 10" },
-  { id: ids.propertyRiver, address: "г. Казань, ул. Набережная, д. 5" },
+  { id: ids.propertyCentral, address: "Moscow, Tverskaya St., 1, apt. 10" },
+  { id: ids.propertyRiver, address: "Kazan, Naberezhnaya St., 5" },
 ];
 /** One client and one property have two deals; deal number repeats across teams. */
 export const deals = [

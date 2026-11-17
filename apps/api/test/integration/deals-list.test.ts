@@ -38,9 +38,9 @@ describe("GET /api/deals", () => {
         id: ids.dealNorthSale,
         number: "2026-001",
         type: "sale",
-        client_name: "ООО «Ромашка»",
-        property_address: "г. Москва, ул. Тверская, д. 1, кв. 10",
-        team_name: "Команда «Север»",
+        client_name: "Romashka LLC",
+        property_address: "Moscow, Tverskaya St., 1, apt. 10",
+        team_name: "Team North",
       });
       expect(response.body).not.toContain("file_data");
     }

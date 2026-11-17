@@ -17,17 +17,17 @@ const data: DealList = {
       id: "50000000-0000-4000-8000-000000000001",
       number: "2026-001",
       type: "sale",
-      client_name: "ООО «Ромашка»",
-      property_address: "г. Москва, ул. Тверская, д. 1, кв. 10 ".repeat(8),
-      team_name: "Команда «Север»",
+      client_name: "Romashka LLC",
+      property_address: "Moscow, Tverskaya St., 1, apt. 10 ".repeat(8),
+      team_name: "Team North",
     },
     {
       id: "50000000-0000-4000-8000-000000000002",
       number: "2026-002",
       type: "rental",
-      client_name: "Иванова",
-      property_address: "Казань",
-      team_name: "Команда «Север»",
+      client_name: "Ivanova",
+      property_address: "Kazan",
+      team_name: "Team North",
     },
   ],
 };
@@ -35,19 +35,21 @@ const data: DealList = {
 describe("/deals screen", () => {
   it("shows number, type, client, address and team with a logout button", () => {
     renderWithProviders(<DealsPage initialData={data} />);
-    const table = screen.getByRole("table", { name: "Доступные сделки" });
+    const table = screen.getByRole("table", { name: "Available deals" });
     expect(
       within(table)
         .getAllByRole("columnheader")
         .map((h) => h.textContent),
-    ).toEqual(["Номер", "Тип сделки", "Клиент", "Адрес объекта", "Команда"]);
+    ).toEqual(["Number", "Deal type", "Client", "Property address", "Team"]);
     const row = within(table).getAllByRole("row")[1]!;
     expect(row).toHaveTextContent("2026-001");
-    expect(row).toHaveTextContent("Продажа");
-    expect(row).toHaveTextContent("ООО «Ромашка»");
-    expect(row).toHaveTextContent("Команда «Север»");
-    expect(within(table).getAllByRole("row")[2]).toHaveTextContent("Аренда");
-    expect(screen.getByRole("button", { name: "Выйти" })).toBeInTheDocument();
+    expect(row).toHaveTextContent("Sale");
+    expect(row).toHaveTextContent("Romashka LLC");
+    expect(row).toHaveTextContent("Team North");
+    expect(within(table).getAllByRole("row")[2]).toHaveTextContent("Rental");
+    expect(
+      screen.getByRole("button", { name: "Sign out" }),
+    ).toBeInTheDocument();
   });
 
   it("opens the card by keyboard link and by row click", async () => {
@@ -57,7 +59,7 @@ describe("/deals screen", () => {
       "href",
       "/deals/50000000-0000-4000-8000-000000000001",
     );
-    await userEvent.setup().click(screen.getByText("Иванова"));
+    await userEvent.setup().click(screen.getByText("Ivanova"));
     expect(routerMock.push).toHaveBeenCalledWith(
       "/deals/50000000-0000-4000-8000-000000000002",
     );
@@ -65,19 +67,19 @@ describe("/deals screen", () => {
 
   it("lets long addresses wrap instead of breaking the layout", () => {
     renderWithProviders(<DealsPage initialData={data} />);
-    const cell = screen.getByText((text) => text.startsWith("г. Москва"));
+    const cell = screen.getByText((text) => text.startsWith("Moscow"));
     expect(cell).toHaveClass("wrap-anywhere");
   });
 
   it("shows the exact empty text", () => {
     renderWithProviders(<DealsPage initialData={{ items: [] }} />);
-    expect(screen.getByText("Нет доступных сделок")).toBeInTheDocument();
+    expect(screen.getByText("No available deals")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 
   it.each([
-    [new ApiError(0, "NETWORK_ERROR"), "Нет связи с сервером"],
-    [new ApiError(500, "INTERNAL_ERROR"), "Внутренняя ошибка сервера"],
+    [new ApiError(0, "NETWORK_ERROR"), "Cannot reach the server"],
+    [new ApiError(500, "INTERNAL_ERROR"), "Internal server error"],
   ])("does not mask %s as an empty list", async (error, text) => {
     const { queryClient } = renderWithProviders(
       <DealsPage initialData={{ items: [] }} />,
@@ -85,9 +87,7 @@ describe("/deals screen", () => {
     );
     await queryClient.refetchQueries({ queryKey: ["deals"] });
     expect(await screen.findByRole("alert")).toHaveTextContent(text);
-    expect(screen.queryByText("Нет доступных сделок")).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Повторить" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByText("No available deals")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
   });
 });

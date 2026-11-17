@@ -73,7 +73,7 @@ export function Dialog({
           </DialogPrimitive.Description>
           {children}
           <DialogPrimitive.Close asChild>
-            <Button variant="outline">Закрыть</Button>
+            <Button variant="outline">Close</Button>
           </DialogPrimitive.Close>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

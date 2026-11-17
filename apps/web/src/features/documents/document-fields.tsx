@@ -46,7 +46,7 @@ export function DocumentFields({
   return (
     <>
       <div className="field">
-        <label htmlFor={id("title")}>Название</label>
+        <label htmlFor={id("title")}>Title</label>
         <Input
           id={id("title")}
           {...described("title")}
@@ -55,7 +55,7 @@ export function DocumentFields({
         <FieldError id={id("title-error")} message={errors.title?.message} />
       </div>
       <div className="field">
-        <label htmlFor={id("type")}>Тип</label>
+        <label htmlFor={id("type")}>Type</label>
         {typeEditable ? (
           <Select id={id("type")} {...register("type")}>
             {Object.entries(documentTypeLabel).map(([value, label]) => (
@@ -69,7 +69,7 @@ export function DocumentFields({
         )}
       </div>
       <div className="field">
-        <label htmlFor={id("number")}>Номер</label>
+        <label htmlFor={id("number")}>Number</label>
         <Input
           id={id("number")}
           {...described("document_number")}
@@ -81,7 +81,7 @@ export function DocumentFields({
         />
       </div>
       <div className="field">
-        <label htmlFor={id("date")}>Дата документа</label>
+        <label htmlFor={id("date")}>Document date</label>
         <Input
           id={id("date")}
           type="date"
@@ -94,7 +94,7 @@ export function DocumentFields({
         />
       </div>
       <div className="field">
-        <label htmlFor={id("effective")}>Дата вступления в силу</label>
+        <label htmlFor={id("effective")}>Effective date</label>
         <Input
           id={id("effective")}
           type="date"
@@ -107,7 +107,7 @@ export function DocumentFields({
         />
       </div>
       <div className="field">
-        <label htmlFor={id("status")}>Статус</label>
+        <label htmlFor={id("status")}>Status</label>
         <Select id={id("status")} {...register("status")}>
           {Object.entries(documentStatusLabel).map(([value, label]) => (
             <option key={value} value={value}>
@@ -118,9 +118,9 @@ export function DocumentFields({
       </div>
       {type === "amendment" && (
         <div className="field">
-          <label htmlFor={id("parent")}>Связанный договор</label>
+          <label htmlFor={id("parent")}>Related contract</label>
           <Select id={id("parent")} {...register("parent_document_id")}>
-            <option value="">Не выбран</option>
+            <option value="">Not selected</option>
             {contracts.map((contract) => (
               <option key={contract.id} value={contract.id}>
                 {contractLabel(contract)}

@@ -101,12 +101,12 @@ describe("browser API client", () => {
     const { calls, fetchImpl } = recordingFetch(() => json(201, { id: "x" }));
     await createApiClient(fetchImpl).uploadDocument(
       "deal-1",
-      { title: "Договор", type: "contract", status: "draft" },
-      new File(["%PDF-"], "Договор.pdf", { type: "application/pdf" }),
+      { title: "Contract", type: "contract", status: "draft" },
+      new File(["%PDF-"], "Contract.pdf", { type: "application/pdf" }),
     );
     const form = calls[0]!.form!;
     expect([...form.keys()]).toEqual(["title", "type", "status", "file"]);
-    expect((form.get("file") as File).name).toBe("Договор.pdf");
+    expect((form.get("file") as File).name).toBe("Contract.pdf");
     expect(calls[0]!.credentials).toBe("same-origin");
   });
 

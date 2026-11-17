@@ -4,7 +4,7 @@ export function Shell({ children }: { children: ReactNode }) {
   return (
     <>
       <a className="skip-link" href="#main">
-        К содержимому
+        Skip to content
       </a>
       <div className="app-shell">{children}</div>
     </>

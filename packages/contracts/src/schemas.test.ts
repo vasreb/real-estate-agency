@@ -16,13 +16,13 @@ const metadata = {
   id,
   deal_id: id,
   parent_document_id: null,
-  title: "Договор",
+  title: "Contract",
   type: "contract",
   document_number: null,
   document_date: "2024-02-29",
   effective_from: null,
   status: "unknown",
-  file_name: "Договор.pdf",
+  file_name: "Contract.pdf",
   mime_type: "application/pdf",
   created_at: "2026-11-12T00:00:00.000Z",
 };
@@ -31,13 +31,13 @@ describe("canonical agency schemas", () => {
     expect(
       loginSchema.parse({
         email: " PERSON@Example.test ",
-        password: " пароль ",
+        password: " password ",
       }),
-    ).toEqual({ email: "person@example.test", password: " пароль " });
+    ).toEqual({ email: "person@example.test", password: " password " });
     expect(
       loginSchema.safeParse({
         email: "a@example.test",
-        password: "я".repeat(513),
+        password: "é".repeat(513),
       }).success,
     ).toBe(false);
   });
@@ -54,9 +54,9 @@ describe("canonical agency schemas", () => {
             id,
             number: "1",
             type: "sale",
-            client_name: "Клиент",
-            property_address: "Адрес",
-            team_name: "Команда",
+            client_name: "Client",
+            property_address: "Address",
+            team_name: "Team",
           },
         ],
       }).items,
@@ -67,20 +67,20 @@ describe("canonical agency schemas", () => {
         number: "1",
         type: "sale",
         role: "admin",
-        client: { id, name: "Клиент" },
-        property: { id, address: "Адрес" },
-        team: { id, name: "Команда" },
+        client: { id, name: "Client" },
+        property: { id, address: "Address" },
+        team: { id, name: "Team" },
         documents: [metadata],
       }).documents,
     ).toHaveLength(1);
   });
   it("defaults only create status, trims titles, and permits an unlinked amendment", () => {
     expect(
-      createDocumentSchema.parse({ title: "  Новое  ", type: "amendment" }),
-    ).toEqual({ title: "Новое", type: "amendment", status: "unknown" });
+      createDocumentSchema.parse({ title: "  New  ", type: "amendment" }),
+    ).toEqual({ title: "New", type: "amendment", status: "unknown" });
     expect(patchDocumentSchema.parse({})).toEqual({});
-    expect(patchDocumentSchema.parse({ title: " Новое " })).toEqual({
-      title: "Новое",
+    expect(patchDocumentSchema.parse({ title: " New " })).toEqual({
+      title: "New",
     });
   });
   it.each([
@@ -115,19 +115,19 @@ describe("canonical agency schemas", () => {
   });
   it.each([
     {},
-    { title: "Договор" },
+    { title: "Contract" },
     { type: "contract" },
     { title: null, type: "contract" },
     { title: "  ", type: "contract" },
-    { title: "Договор", type: "invoice" },
-    { title: "Договор", type: "contract", status: null },
-    { title: "Договор", type: "contract", document_number: "" },
-    { title: "Договор", type: "contract", document_date: "" },
-    { title: "Договор", type: "contract", effective_from: "2026-13-01" },
-    { title: "Договор", type: "contract", parent_document_id: "" },
-    { title: "Договор", type: "contract", deal_id: id },
-    { title: "Договор", type: "contract", file: "bytes" },
-    { title: "Договор", type: "contract", file_data: "bytes" },
+    { title: "Contract", type: "invoice" },
+    { title: "Contract", type: "contract", status: null },
+    { title: "Contract", type: "contract", document_number: "" },
+    { title: "Contract", type: "contract", document_date: "" },
+    { title: "Contract", type: "contract", effective_from: "2026-13-01" },
+    { title: "Contract", type: "contract", parent_document_id: "" },
+    { title: "Contract", type: "contract", deal_id: id },
+    { title: "Contract", type: "contract", file: "bytes" },
+    { title: "Contract", type: "contract", file_data: "bytes" },
   ])("rejects invalid upload metadata fixture %#", (input) => {
     expect(createDocumentSchema.safeParse(input).success).toBe(false);
   });
@@ -135,19 +135,19 @@ describe("canonical agency schemas", () => {
     expect(
       patchDocumentSchema.safeParse({ document_number: " " }).success,
     ).toBe(false);
-    expect(patchDocumentSchema.parse({ document_number: " 12-А " })).toEqual({
-      document_number: "12-А",
+    expect(patchDocumentSchema.parse({ document_number: " 12-A " })).toEqual({
+      document_number: "12-A",
     });
   });
   it("keeps an explicit create status and never adds patch defaults", () => {
     expect(
       createDocumentSchema.parse({
-        title: "Акт",
+        title: "Act",
         type: "handover_report",
         status: "signed",
       }).status,
     ).toBe("signed");
-    expect(patchDocumentSchema.parse({ title: "Акт" })).not.toHaveProperty(
+    expect(patchDocumentSchema.parse({ title: "Act" })).not.toHaveProperty(
       "status",
     );
   });

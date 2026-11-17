@@ -49,7 +49,7 @@ const rentalCount = () =>
 describe("document create invariants", () => {
   it("creates metadata + original atomically with the default status", async () => {
     const contract = await create({
-      title: "Договор аренды",
+      title: "Rental contract",
       type: "contract",
     });
     expect(contract).toMatchObject({
@@ -67,15 +67,15 @@ describe("document create invariants", () => {
   });
 
   it("links an amendment to a same-deal contract and allows an unlinked amendment", async () => {
-    const contract = await create({ title: "Договор", type: "contract" });
+    const contract = await create({ title: "Contract", type: "contract" });
     const linked = await create({
-      title: "ДС",
+      title: "Amendment",
       type: "amendment",
       parent_document_id: contract.id,
     });
     expect(linked.parent_document_id).toBe(contract.id);
     const unlinked = await create({
-      title: "ДС без договора",
+      title: "Amendment without contract",
       type: "amendment",
     });
     expect(unlinked.parent_document_id).toBeNull();
@@ -153,7 +153,7 @@ describe("document create invariants", () => {
 describe("document update invariants", () => {
   it("keeps omitted fields, clears null fields, and never changes type/deal/bytes", async () => {
     const contract = await create({
-      title: "Исходный",
+      title: "Original",
       type: "contract",
       document_number: "N-1",
       document_date: "2026-01-10",
@@ -185,9 +185,9 @@ describe("document update invariants", () => {
   });
 
   it("rejects self links, wrong-deal relinks, and parents on non-amendments while preserving the old parent", async () => {
-    const contract = await create({ title: "Договор", type: "contract" });
+    const contract = await create({ title: "Contract", type: "contract" });
     const amendment = await create({
-      title: "ДС",
+      title: "Amendment",
       type: "amendment",
       parent_document_id: contract.id,
     });
@@ -247,9 +247,9 @@ describe("document update invariants", () => {
 
 describe("document delete invariants", () => {
   it("maps the RESTRICT constraint to 409 and deletes in dependency order", async () => {
-    const contract = await create({ title: "Договор", type: "contract" });
+    const contract = await create({ title: "Contract", type: "contract" });
     const amendment = await create({
-      title: "ДС",
+      title: "Amendment",
       type: "amendment",
       parent_document_id: contract.id,
     });
@@ -271,7 +271,7 @@ describe("document delete invariants", () => {
     await expect(
       commands.deleteDocument(ids.userAdmin, ids.docSouthContract),
     ).rejects.toMatchObject({ statusCode: 404 });
-    const doc = await create({ title: "Удаляемый", type: "other" });
+    const doc = await create({ title: "To be deleted", type: "other" });
     await commands.deleteDocument(ids.userAdmin, doc.id);
     await expect(
       commands.deleteDocument(ids.userAdmin, doc.id),
@@ -286,7 +286,7 @@ describe("document file read", () => {
       ids.docNorthContract,
     );
     expect(file.mimeType).toBe(PDF_MIME);
-    expect(file.fileName).toBe("Договор купли-продажи.pdf");
+    expect(file.fileName).toBe("Purchase agreement.pdf");
     expect(Buffer.from(file.bytes.subarray(0, 5)).toString()).toBe("%PDF-");
     await expect(
       commands.readDocumentFile(ids.userOther, ids.docNorthContract),

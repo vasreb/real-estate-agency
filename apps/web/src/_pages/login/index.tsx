@@ -4,7 +4,7 @@ import { LoginForm } from "@/features/auth";
 export function LoginPage() {
   return (
     <main id="main" className="page page-narrow">
-      <h1>Вход</h1>
+      <h1>Sign in</h1>
       <LoginForm />
     </main>
   );
