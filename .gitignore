@@ -32,3 +32,6 @@ backups/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Local planning and evidence records (not part of the repository)
+.omo/
