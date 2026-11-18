@@ -27,6 +27,20 @@ enum DocumentType {
   other
   @@map("document_type")
 }
+enum DocumentProcessingStatus {
+  pending
+  processing
+  indexed
+  failed
+  @@map("document_processing_status")
+}
+enum IndexJobStatus {
+  queued
+  running
+  succeeded
+  failed
+  @@map("index_job_status")
+}
 enum DocumentStatus {
   draft
   signed
@@ -56,6 +70,7 @@ model Team {
   name String
   members TeamMember[]
   deals Deal[]
+  documents Document[]
   @@map("teams")
 }
 model TeamMember {
@@ -96,7 +111,8 @@ model Deal {
 }
 model Document {
   id String @id @default(uuid()) @db.Uuid
-  dealId String @map("deal_id") @db.Uuid
+  dealId String? @map("deal_id") @db.Uuid
+  teamId String? @map("team_id") @db.Uuid
   parentDocumentId String? @map("parent_document_id") @db.Uuid
   type DocumentType
   title String @db.VarChar(255)
@@ -107,11 +123,49 @@ model Document {
   fileName String @map("file_name")
   mimeType String @map("mime_type")
   fileData Bytes @map("file_data")
+  processingStatus DocumentProcessingStatus @default(pending) @map("processing_status")
+  indexedAt DateTime? @map("indexed_at") @db.Timestamptz(3)
+  processingError String? @map("processing_error")
+  pdfRepresentation Bytes? @map("pdf_representation")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  deal Deal @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  deal Deal? @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  team Team? @relation(fields: [teamId], references: [id], onDelete: Restrict)
+  chunks DocumentChunk[]
+  indexJobs IndexJob[]
   parent Document? @relation("DocumentParent", fields: [dealId, parentDocumentId], references: [dealId, id], onDelete: Restrict, onUpdate: Restrict, map: "documents_parent_same_deal_fk")
   amendments Document[] @relation("DocumentParent")
   @@unique([dealId, id])
   @@index([dealId, parentDocumentId])
+  @@index([teamId])
   @@map("documents")
+}
+/// Embeddings and the generated full-text column are written and read with raw SQL.
+model DocumentChunk {
+  id String @id @default(uuid()) @db.Uuid
+  documentId String @map("document_id") @db.Uuid
+  ordinal Int
+  pageStart Int @map("page_start")
+  pageEnd Int @map("page_end")
+  section String?
+  content String
+  embedding Unsupported("vector(1024)")
+  embeddingModel String @map("embedding_model")
+  contentTsv Unsupported("tsvector")? @map("content_tsv")
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@unique([documentId, ordinal])
+  @@map("document_chunks")
+}
+model IndexJob {
+  id String @id @default(uuid()) @db.Uuid
+  documentId String @map("document_id") @db.Uuid
+  status IndexJobStatus @default(queued)
+  attempts Int @default(0)
+  lastError String? @map("last_error")
+  runAfter DateTime @default(now()) @map("run_after") @db.Timestamptz(3)
+  lockedAt DateTime? @map("locked_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@index([status, runAfter])
+  @@map("index_jobs")
 }

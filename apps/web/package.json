@@ -16,6 +16,7 @@
   "dependencies": {
     "@agency/contracts": "workspace:*",
     "@agency/ui": "workspace:*",
+    "@assistant-ui/react": "^0.15.36",
     "@hookform/resolvers": "^5.0.0",
     "@tanstack/react-query": "^5.0.0",
     "next": "~16.4.6",

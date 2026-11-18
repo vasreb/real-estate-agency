@@ -12,3 +12,7 @@ export {
   registerDocumentRoutes,
   multipartLimits,
 } from "./presentation/routes.js";
+export {
+  createTeamDocumentReader,
+  toTeamDocument,
+} from "./infrastructure/team-document-reader.js";

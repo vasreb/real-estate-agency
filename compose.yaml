@@ -1,7 +1,7 @@
 name: agency-base
 services:
   postgres:
-    image: postgres:18
+    image: pgvector/pgvector:pg18-trixie
     environment:
       POSTGRES_USER: agency
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
@@ -16,7 +16,7 @@ services:
       timeout: 3s
       retries: 30
   postgres-test:
-    image: postgres:18
+    image: pgvector/pgvector:pg18-trixie
     profiles: ["test"]
     environment:
       POSTGRES_USER: agency_test

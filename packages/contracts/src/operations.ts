@@ -4,6 +4,13 @@ import {
   createDocumentSchema,
   patchDocumentSchema,
   documentMetadataSchema,
+  chatRequestSchema,
+  chatResponseSchema,
+  chatStreamEventSchema,
+  createTeamDocumentSchema,
+  teamDocumentSchema,
+  teamDocumentListSchema,
+  teamListSchema,
   dealListSchema,
   dealDetailSchema,
 } from "./schemas.js";
@@ -17,6 +24,10 @@ type OperationDescriptor = {
   response?: z.ZodType;
   requestMedia?: "application/json" | "multipart/form-data";
   binary?: boolean;
+  /** Binary response shown in the browser instead of downloaded. */
+  inline?: boolean;
+  /** Newline-delimited JSON: `response` describes each line. */
+  stream?: boolean;
   authenticated: boolean;
   errors: number[];
 };
@@ -95,5 +106,76 @@ export const operations: OperationDescriptor[] = [
     status: 204,
     authenticated: true,
     errors: [400, 401, 403, 404, 409],
+  },
+  {
+    operationId: "listTeams",
+    method: "get",
+    path: "/api/teams",
+    response: teamListSchema,
+    status: 200,
+    authenticated: true,
+    errors: [401],
+  },
+  {
+    operationId: "listTeamDocuments",
+    method: "get",
+    path: "/api/teams/{teamId}/documents",
+    response: teamDocumentListSchema,
+    status: 200,
+    authenticated: true,
+    errors: [400, 401, 403, 404],
+  },
+  {
+    operationId: "uploadTeamDocument",
+    method: "post",
+    path: "/api/teams/{teamId}/documents",
+    body: createTeamDocumentSchema,
+    requestMedia: "multipart/form-data",
+    response: teamDocumentSchema,
+    status: 201,
+    authenticated: true,
+    errors: [400, 401, 403, 404, 413, 415, 429],
+  },
+  {
+    operationId: "reindexDocument",
+    method: "post",
+    path: "/api/documents/{documentId}/reindex",
+    response: teamDocumentSchema,
+    status: 200,
+    authenticated: true,
+    errors: [400, 401, 403, 404],
+  },
+  {
+    operationId: "previewDocument",
+    method: "get",
+    path: "/api/documents/{documentId}/preview",
+    binary: true,
+    inline: true,
+    status: 200,
+    authenticated: true,
+    errors: [400, 401, 404],
+  },
+  {
+    operationId: "chat",
+    method: "post",
+    path: "/api/chat",
+    body: chatRequestSchema,
+    requestMedia: "application/json",
+    response: chatResponseSchema,
+    status: 200,
+    authenticated: true,
+    errors: [400, 401, 404, 429, 503],
+  },
+  {
+    operationId: "chatStream",
+    method: "post",
+    path: "/api/chat/stream",
+    body: chatRequestSchema,
+    requestMedia: "application/json",
+    response: chatStreamEventSchema,
+    stream: true,
+    status: 200,
+    authenticated: true,
+    errors: [400, 401, 404, 429, 503],
   },
 ];

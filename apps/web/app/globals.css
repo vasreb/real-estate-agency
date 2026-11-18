@@ -255,3 +255,114 @@ th {
 .wrap-anywhere {
   overflow-wrap: anywhere;
 }
+
+/* Assistant: widget, panel and thread (shared by the widget and /chat). */
+.assistant-launcher {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+}
+.assistant-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: min(32rem, 100vw);
+  padding: 1rem;
+  overflow-y: auto;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 16px rgb(0 0 0 / 0.12);
+}
+.assistant-panel[hidden] {
+  display: none;
+}
+.chat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+.chat-scope {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+}
+.chat-thread {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 20rem;
+}
+.chat-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.chat-message {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.chat-user {
+  align-self: flex-end;
+  background: var(--background);
+}
+.chat-text {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.chat-plain {
+  white-space: pre-wrap;
+}
+.chat-text > * {
+  margin: 0 0 0.5rem;
+}
+.chat-text > :last-child {
+  margin-bottom: 0;
+}
+.chat-text ul,
+.chat-text ol {
+  padding-left: 1.25rem;
+}
+.chat-sources {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+.chat-sources > summary {
+  cursor: pointer;
+  color: var(--muted-foreground, inherit);
+}
+.chat-citations {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+}
+.chat-citations blockquote {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--border);
+}
+.chat-composer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+.chat-input {
+  flex: 1;
+  min-height: 2.5rem;
+  padding: 0.5rem;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  resize: vertical;
+}

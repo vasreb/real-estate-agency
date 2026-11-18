@@ -35,6 +35,8 @@ const productionEnv = {
   POSTGRES_TEST_PASSWORD: "ops-check-only",
   DATABASE_URL: "postgresql://agency:ops-check-only@postgres:5432/agency",
   PUBLIC_ORIGIN: "https://agency.example",
+  // The indexing worker cannot start without an embeddings key.
+  VOYAGE_API_KEY: "ops-check-only",
 };
 
 // An empty env file keeps the developer's .env out of production checks.

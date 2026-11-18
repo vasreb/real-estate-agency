@@ -15,6 +15,7 @@ export function createDealRepository(database: Database) {
           type: true,
           client: { select: { name: true } },
           property: { select: { address: true } },
+          teamId: true,
           team: { select: { name: true } },
         },
       });
@@ -24,6 +25,7 @@ export function createDealRepository(database: Database) {
         type: row.type,
         client_name: row.client.name,
         property_address: row.property.address,
+        team_id: row.teamId,
         team_name: row.team.name,
       }));
     },

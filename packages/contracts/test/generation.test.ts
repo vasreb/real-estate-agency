@@ -24,14 +24,21 @@ describe("generated consumer contract", () => {
       (item) => Object.values(item) as Op[],
     );
     expect(ops.map((op) => op.operationId).sort()).toEqual([
+      "chat",
+      "chatStream",
       "deleteDocument",
       "downloadDocument",
       "getDeal",
       "listDeals",
+      "listTeamDocuments",
+      "listTeams",
       "login",
       "logout",
       "patchDocument",
+      "previewDocument",
+      "reindexDocument",
       "uploadDocument",
+      "uploadTeamDocument",
     ]);
     const byId = Object.fromEntries(ops.map((op) => [op.operationId, op]));
     const upload =
@@ -64,6 +71,16 @@ describe("generated consumer contract", () => {
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ]);
+    expect(
+      Object.keys(byId.previewDocument?.responses["200"]?.content ?? {}),
+    ).toEqual(["application/pdf"]);
+    const teamUpload =
+      byId.uploadTeamDocument?.requestBody?.content["multipart/form-data"]
+        ?.schema;
+    expect(teamUpload?.properties).not.toHaveProperty("parent_document_id");
+    expect(teamUpload?.required).toEqual(
+      expect.arrayContaining(["file", "title", "type"]),
+    );
     expect(byId.uploadDocument?.responses).toHaveProperty("201");
     expect(byId.deleteDocument?.responses).toHaveProperty("409");
     expect(JSON.stringify(document)).not.toContain("file_data");
@@ -90,5 +107,22 @@ describe("generated consumer contract", () => {
     } finally {
       await rm(temp, { recursive: true, force: true });
     }
+  });
+});
+
+describe("streamed chat contract", () => {
+  it("documents the NDJSON events and keeps the plain chat operation", () => {
+    const document = buildOpenApi() as unknown as {
+      paths: Record<
+        string,
+        Record<string, { responses: Record<string, { content?: object }> }>
+      >;
+    };
+    const stream = document.paths["/api/chat/stream"]?.post?.responses["200"];
+    expect(Object.keys(stream?.content ?? {})).toEqual([
+      "application/x-ndjson",
+    ]);
+    const plain = document.paths["/api/chat"]?.post?.responses["200"];
+    expect(Object.keys(plain?.content ?? {})).toEqual(["application/json"]);
   });
 });

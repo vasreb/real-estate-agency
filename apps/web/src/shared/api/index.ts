@@ -2,7 +2,9 @@
 export {
   createApiClient,
   documentFileUrl,
+  documentPreviewUrl,
   type ApiClient,
+  type TeamUploadInput,
   type UploadInput,
 } from "./client";
 export { ApiError, errorMessage, isUnauthenticated } from "./errors";

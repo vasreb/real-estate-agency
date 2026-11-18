@@ -7,7 +7,10 @@ const UNSAFE = /[\u0000-\u001f\u007f‪-‮⁦-⁩]/g;
  * `filename*`. Control characters, quotes, backslashes and path separators
  * never reach the header.
  */
-export function attachmentHeader(fileName: string): string {
+function dispositionHeader(
+  disposition: "attachment" | "inline",
+  fileName: string,
+): string {
   const cleaned =
     fileName
       .normalize("NFC")
@@ -19,5 +22,11 @@ export function attachmentHeader(fileName: string): string {
     /['()*]/g,
     (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
   );
-  return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
+  return `${disposition}; filename="${fallback}"; filename*=UTF-8''${encoded}`;
 }
+
+export const attachmentHeader = (fileName: string) =>
+  dispositionHeader("attachment", fileName);
+/** Same sanitising, for in-browser viewing (citation preview). */
+export const inlineHeader = (fileName: string) =>
+  dispositionHeader("inline", fileName);

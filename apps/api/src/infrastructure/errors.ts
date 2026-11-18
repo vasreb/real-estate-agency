@@ -11,6 +11,7 @@ const messages: Record<ApiErrorCode, string> = {
   UNSUPPORTED_FILE_TYPE: "Only valid PDF and DOCX files are allowed",
   RATE_LIMITED: "Too many requests. Try again later",
   INTERNAL_ERROR: "Internal server error",
+  ASSISTANT_UNAVAILABLE: "The assistant is temporarily unavailable",
 };
 const statuses: Record<ApiErrorCode, number> = {
   VALIDATION_ERROR: 400,
@@ -22,6 +23,7 @@ const statuses: Record<ApiErrorCode, number> = {
   UNSUPPORTED_FILE_TYPE: 415,
   RATE_LIMITED: 429,
   INTERNAL_ERROR: 500,
+  ASSISTANT_UNAVAILABLE: 503,
 };
 export class HttpError extends Error {
   readonly statusCode: number;

@@ -16,6 +16,11 @@ export function fakeApi(overrides: Partial<ApiClient> = {}): ApiClient {
     uploadDocument: unexpected("uploadDocument"),
     patchDocument: unexpected("patchDocument"),
     deleteDocument: unexpected("deleteDocument"),
+    listTeams: unexpected("listTeams"),
+    listTeamDocuments: unexpected("listTeamDocuments"),
+    uploadTeamDocument: unexpected("uploadTeamDocument"),
+    reindexDocument: unexpected("reindexDocument"),
+    chatStream: unexpected("chatStream"),
     ...overrides,
   };
 }

@@ -74,3 +74,27 @@ describe("schema/migration policy (DB assertions live in integration tests)", ()
     ).toThrow("Session hash");
   });
 });
+
+const ragMigration = readFileSync(
+  new URL(
+    "../../prisma/migrations/202611170001_rag_foundation/migration.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+describe("RAG foundation migration policy", () => {
+  it("declares the extension, owner checks, chunk cascade and job uniqueness", () => {
+    for (const name of [
+      "CREATE EXTENSION IF NOT EXISTS vector",
+      "documents_single_owner",
+      "documents_team_collection_shape",
+      "vector(1024)",
+      "index_jobs_one_active_per_document",
+    ])
+      expect(ragMigration).toContain(name);
+    expect(ragMigration).toMatch(
+      /document_chunks_document_id_fkey[^;]*ON DELETE CASCADE/,
+    );
+    expect(ragMigration).not.toMatch(/CREATE INDEX[^;]*hnsw/i);
+  });
+});

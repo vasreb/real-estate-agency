@@ -56,6 +56,7 @@ describe("canonical agency schemas", () => {
             type: "sale",
             client_name: "Client",
             property_address: "Address",
+            team_id: id,
             team_name: "Team",
           },
         ],
@@ -159,7 +160,7 @@ describe("canonical agency schemas", () => {
       }).effective_from,
     ).toBe("2020-01-01");
   });
-  it("uses exactly the specified enum values and eight operation descriptors", () => {
+  it("uses exactly the specified enum values and fifteen operation descriptors", () => {
     expect(documentTypeSchema.options).toEqual([
       "contract",
       "amendment",
@@ -174,7 +175,7 @@ describe("canonical agency schemas", () => {
     ]);
     expect(
       new Set(operations.map((op) => `${op.method} ${op.path}`)).size,
-    ).toBe(8);
+    ).toBe(15);
     expect(operations.filter((op) => op.status === 204)).toHaveLength(3);
     expect(operations.find((op) => op.binary)?.operationId).toBe(
       "downloadDocument",

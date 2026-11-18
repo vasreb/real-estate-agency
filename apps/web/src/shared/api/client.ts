@@ -1,10 +1,15 @@
 import type {
+  ChatRequest,
   CreateDocumentInput,
+  CreateTeamDocumentInput,
   DealDetail,
   DealList,
   DocumentMetadata,
   LoginInput,
   PatchDocumentInput,
+  TeamDocument,
+  TeamDocumentList,
+  TeamList,
 } from "@agency/contracts";
 import type { paths } from "@agency/contracts/paths";
 import createClient from "openapi-fetch";
@@ -13,6 +18,8 @@ import { ApiError, errorFromBody, toApiError } from "./errors";
 type FetchLike = typeof fetch;
 export type UploadInput = Omit<CreateDocumentInput, "status"> &
   Partial<Pick<CreateDocumentInput, "status">>;
+export type TeamUploadInput = Omit<CreateTeamDocumentInput, "status"> &
+  Partial<Pick<CreateTeamDocumentInput, "status">>;
 
 /**
  * Browser API adapter: relative same-origin `/api/...` URLs only, cookies via
@@ -94,6 +101,61 @@ export function createApiClient(
         }),
       );
     },
+    async listTeams(signal?: AbortSignal): Promise<TeamList> {
+      return ensure(await client.GET("/api/teams", { signal }));
+    },
+    async listTeamDocuments(
+      teamId: string,
+      signal?: AbortSignal,
+    ): Promise<TeamDocumentList> {
+      return ensure(
+        await client.GET("/api/teams/{teamId}/documents", {
+          params: { path: { teamId } },
+          signal,
+        }),
+      );
+    },
+    async uploadTeamDocument(
+      teamId: string,
+      input: TeamUploadInput,
+      file: File,
+    ): Promise<TeamDocument> {
+      const form = new FormData();
+      for (const [key, value] of Object.entries(input))
+        if (typeof value === "string") form.append(key, value);
+      form.append("file", file, file.name);
+      const response = await guarded(
+        `/api/teams/${encodeURIComponent(teamId)}/documents`,
+        { method: "POST", body: form },
+      );
+      if (!response.ok) throw await toApiError(response);
+      return (await response.json()) as TeamDocument;
+    },
+    async reindexDocument(documentId: string): Promise<TeamDocument> {
+      return ensure(
+        await client.POST("/api/documents/{documentId}/reindex", {
+          params: { path: { documentId } },
+        }),
+      );
+    },
+    /**
+     * The answer as newline-delimited JSON events (see `chatStreamEventSchema`).
+     * Access and limit errors arrive as a normal HTTP error before the stream.
+     */
+    async chatStream(
+      body: ChatRequest,
+      signal?: AbortSignal,
+    ): Promise<ReadableStream<Uint8Array>> {
+      const stream = ensure(
+        await client.POST("/api/chat/stream", {
+          body,
+          signal,
+          parseAs: "stream",
+        }),
+      );
+      if (!stream) throw new ApiError(0, "NETWORK_ERROR");
+      return stream;
+    },
     async deleteDocument(documentId: string): Promise<void> {
       ensure(
         await client.DELETE("/api/documents/{documentId}", {
@@ -108,3 +170,7 @@ export type ApiClient = ReturnType<typeof createApiClient>;
 /** Same-origin download URL; the browser sends the HttpOnly cookie itself. */
 export const documentFileUrl = (documentId: string) =>
   `/api/documents/${encodeURIComponent(documentId)}/file`;
+
+/** Same-origin PDF preview; browsers open the given page from `#page=`. */
+export const documentPreviewUrl = (documentId: string, page?: number) =>
+  `/api/documents/${encodeURIComponent(documentId)}/preview${page ? `#page=${page}` : ""}`;

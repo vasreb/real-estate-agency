@@ -26,6 +26,23 @@ services:
         condition: service_healthy
     networks: [internal]
     restart: unless-stopped
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.worker
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:?Set VOYAGE_API_KEY}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-voyage-4}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-1024}
+      OCR_LANGUAGES: ${OCR_LANGUAGES:-eng}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+    restart: unless-stopped
   migrate:
     # Explicit, one-off: docker compose ... run --rm migrate
     profiles: ["migrate"]

@@ -1,10 +1,13 @@
 import { createApp } from "./app.js";
-import { loadConfig } from "./infrastructure/config.js";
+import { loadAssistantConfig, loadConfig } from "./infrastructure/config.js";
 import { createDatabase } from "./infrastructure/database/index.js";
 
 const config = loadConfig();
 const database = createDatabase(config.DATABASE_URL);
-const app = createApp(config, { database });
+const app = createApp(config, {
+  database,
+  assistantConfig: loadAssistantConfig(),
+});
 app.addHook("onClose", async () => {
   await database.$disconnect();
 });

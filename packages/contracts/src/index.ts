@@ -13,6 +13,7 @@ export const errorCodeSchema = z.enum([
   "UNSUPPORTED_FILE_TYPE",
   "RATE_LIMITED",
   "INTERNAL_ERROR",
+  "ASSISTANT_UNAVAILABLE",
 ]);
 export const apiErrorSchema = z.strictObject({
   code: errorCodeSchema,

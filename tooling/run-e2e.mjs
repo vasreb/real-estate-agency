@@ -20,6 +20,9 @@ const shared = {
   TRUSTED_PROXIES: "127.0.0.1",
 };
 const rootEnv = loadRootEnv(shared);
+// The suite never calls real model providers: it is deterministic and free.
+// Personal keys from `.env` would switch the assistant on.
+for (const key of ["ANTHROPIC_API_KEY", "VOYAGE_API_KEY"]) delete rootEnv[key];
 // Tooling steps get the root env (their own guards derive the test target);
 // runtime processes get the guarded test database as DATABASE_URL.
 const env = { ...testEnvironment(rootEnv), ...shared };

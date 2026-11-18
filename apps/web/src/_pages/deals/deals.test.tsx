@@ -19,6 +19,7 @@ const data: DealList = {
       type: "sale",
       client_name: "Romashka LLC",
       property_address: "Moscow, Tverskaya St., 1, apt. 10 ".repeat(8),
+      team_id: "10000000-0000-4000-8000-000000000001",
       team_name: "Team North",
     },
     {
@@ -27,6 +28,7 @@ const data: DealList = {
       type: "rental",
       client_name: "Ivanova",
       property_address: "Kazan",
+      team_id: "10000000-0000-4000-8000-000000000001",
       team_name: "Team North",
     },
   ],

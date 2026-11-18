@@ -1,9 +1,12 @@
 import {
   createDocumentSchema,
+  createTeamDocumentSchema,
   documentMetadataSchema,
   MAX_FILE_BYTES,
   MAX_REQUEST_BYTES,
   patchDocumentSchema,
+  teamDocumentListSchema,
+  teamDocumentSchema,
   uuidSchema,
 } from "@agency/contracts";
 import type { FastifyInstance, FastifyRequest } from "fastify";
@@ -15,10 +18,11 @@ import {
   detectDocumentFile,
   FileValidationError,
 } from "../infrastructure/files/index.js";
-import { attachmentHeader } from "./content-disposition.js";
+import { attachmentHeader, inlineHeader } from "./content-disposition.js";
 
 const documentParams = z.strictObject({ documentId: uuidSchema });
 const dealParams = z.strictObject({ dealId: uuidSchema });
+const teamParams = z.strictObject({ teamId: uuidSchema });
 const UPLOAD_FIELDS = new Set([
   "title",
   "type",
@@ -116,6 +120,48 @@ export function registerDocumentRoutes(
 ) {
   const { documents, authenticate } = options;
 
+  /**
+   * Reads the multipart body, validates the fields first (400), then the file
+   * (413/415), so the error precedence is the same for deal and team uploads.
+   */
+  async function receiveUpload<T>(
+    request: FastifyRequest,
+    parseFields: (fields: Record<string, string>) => T,
+  ) {
+    const { fields, file } = await readUpload(request);
+    const input = parseFields(fields);
+    let detected;
+    try {
+      detected = await detectDocumentFile(file.bytes, file.fileName);
+    } catch (error) {
+      if (error instanceof FileValidationError)
+        throw new HttpError(
+          error.reason === "too_large"
+            ? "PAYLOAD_TOO_LARGE"
+            : "UNSUPPORTED_FILE_TYPE",
+        );
+      throw error;
+    }
+    return {
+      input,
+      file: {
+        bytes: new Uint8Array(file.bytes),
+        fileName: detected.fileName,
+        mimeType: detected.mimeType,
+      },
+    };
+  }
+
+  /** Slot acquisition and size checks shared by both upload routes. */
+  function beginUpload(request: FastifyRequest) {
+    const declared = Number(request.headers["content-length"]);
+    if (Number.isFinite(declared) && declared > MAX_REQUEST_BYTES)
+      throw new HttpError("PAYLOAD_TOO_LARGE");
+    const release = options.uploadSlots.tryAcquire();
+    if (!release) throw new HttpError("RATE_LIMITED", 1);
+    return release;
+  }
+
   app.post(
     "/api/deals/:dealId/documents",
     { bodyLimit: MAX_REQUEST_BYTES },
@@ -124,37 +170,75 @@ export function registerDocumentRoutes(
       const { userId } = await authenticate(request);
       const { dealId } = dealParams.parse(request.params);
       await documents.authorizeDealWrite(userId, dealId);
-      const declared = Number(request.headers["content-length"]);
-      if (Number.isFinite(declared) && declared > MAX_REQUEST_BYTES)
-        throw new HttpError("PAYLOAD_TOO_LARGE");
-      const release = options.uploadSlots.tryAcquire();
-      if (!release) throw new HttpError("RATE_LIMITED", 1);
+      const release = beginUpload(request);
       try {
-        const { fields, file } = await readUpload(request);
-        const input = createDocumentSchema.parse(fields);
-        let detected;
-        try {
-          detected = await detectDocumentFile(file.bytes, file.fileName);
-        } catch (error) {
-          if (error instanceof FileValidationError)
-            throw new HttpError(
-              error.reason === "too_large"
-                ? "PAYLOAD_TOO_LARGE"
-                : "UNSUPPORTED_FILE_TYPE",
-            );
-          throw error;
-        }
-        const metadata = await documents.createDocument(userId, dealId, input, {
-          bytes: new Uint8Array(file.bytes),
-          fileName: detected.fileName,
-          mimeType: detected.mimeType,
-        });
+        const { input, file } = await receiveUpload(request, (fields) =>
+          createDocumentSchema.parse(fields),
+        );
+        const metadata = await documents.createDocument(
+          userId,
+          dealId,
+          input,
+          file,
+        );
         return reply.code(201).send(documentMetadataSchema.parse(metadata));
       } finally {
         release();
       }
     },
   );
+
+  app.get("/api/teams/:teamId/documents", async (request) => {
+    const { userId } = await authenticate(request);
+    const { teamId } = teamParams.parse(request.params);
+    return teamDocumentListSchema.parse({
+      items: await documents.listTeamDocuments(userId, teamId),
+    });
+  });
+
+  app.post(
+    "/api/teams/:teamId/documents",
+    { bodyLimit: MAX_REQUEST_BYTES },
+    async (request, reply) => {
+      const { userId } = await authenticate(request);
+      const { teamId } = teamParams.parse(request.params);
+      await documents.authorizeTeamWrite(userId, teamId);
+      const release = beginUpload(request);
+      try {
+        const { input, file } = await receiveUpload(request, (fields) =>
+          createTeamDocumentSchema.parse(fields),
+        );
+        const created = await documents.createTeamDocument(
+          userId,
+          teamId,
+          input,
+          file,
+        );
+        return reply.code(201).send(teamDocumentSchema.parse(created));
+      } finally {
+        release();
+      }
+    },
+  );
+
+  app.post("/api/documents/:documentId/reindex", async (request) => {
+    const { userId } = await authenticate(request);
+    const { documentId } = documentParams.parse(request.params);
+    return teamDocumentSchema.parse(
+      await documents.reindexDocument(userId, documentId),
+    );
+  });
+
+  app.get("/api/documents/:documentId/preview", async (request, reply) => {
+    const { userId } = await authenticate(request);
+    const { documentId } = documentParams.parse(request.params);
+    const file = await documents.readDocumentPreview(userId, documentId);
+    return reply
+      .header("Content-Type", "application/pdf")
+      .header("Content-Disposition", inlineHeader(file.fileName))
+      .header("X-Content-Type-Options", "nosniff")
+      .send(Buffer.from(file.bytes));
+  });
 
   app.get("/api/documents/:documentId/file", async (request, reply) => {
     const { userId } = await authenticate(request);

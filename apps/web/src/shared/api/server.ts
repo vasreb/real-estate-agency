@@ -3,9 +3,11 @@ import {
   dealDetailSchema,
   dealListSchema,
   SESSION_COOKIE,
+  teamListSchema,
   uuidSchema,
   type DealDetail,
   type DealList,
+  type TeamList,
 } from "@agency/contracts";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -59,4 +61,11 @@ export async function loadDealForPage(dealId: string): Promise<DealDetail> {
   if (status === 404 || status === 400) notFound();
   if (status !== 200) throw new ServerApiError(status);
   return dealDetailSchema.parse(body);
+}
+
+export async function loadTeamsForPage(): Promise<TeamList> {
+  const { status, body } = await serverGet("/api/teams");
+  if (status === 401) redirect("/login");
+  if (status !== 200) throw new ServerApiError(status);
+  return teamListSchema.parse(body);
 }

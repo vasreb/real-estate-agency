@@ -27,7 +27,8 @@ export function buildOpenApi() {
       ...(operation.response
         ? {
             content: {
-              "application/json": { schema: jsonSchema(operation.response) },
+              [operation.stream ? "application/x-ndjson" : "application/json"]:
+                { schema: jsonSchema(operation.response) },
             },
           }
         : {}),
@@ -37,13 +38,19 @@ export function buildOpenApi() {
               "application/pdf": {
                 schema: { type: "string", format: "binary" },
               },
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                { schema: { type: "string", format: "binary" } },
+              ...(operation.inline
+                ? {}
+                : {
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                      { schema: { type: "string", format: "binary" } },
+                  }),
             },
             headers: {
               "Content-Disposition": {
                 schema: { type: "string" },
-                description: "attachment with filename and UTF-8 filename*",
+                description: operation.inline
+                  ? "inline PDF"
+                  : "attachment with filename and UTF-8 filename*",
               },
             },
           }

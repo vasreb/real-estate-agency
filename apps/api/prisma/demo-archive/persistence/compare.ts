@@ -35,7 +35,7 @@ export function compareUserIdentities(
 }
 type StoredDocument = {
   id: string;
-  dealId: string;
+  dealId: string | null;
   parentDocumentId: string | null;
   type: string;
   title: string;

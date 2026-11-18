@@ -74,3 +74,31 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   }
   return parsed.data;
 }
+
+/** Assistant settings; optional so the API still runs without the keys. */
+const assistantConfigSchema = z.object({
+  // The assistant is enabled only when both keys are set (see app.ts).
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  VOYAGE_API_KEY: z.string().min(1).optional(),
+  ASSISTANT_MODEL: z.string().min(1).default("claude-haiku-5-5"),
+  EMBEDDING_MODEL: z.string().min(1).default("voyage-4"),
+  EMBEDDING_DIMENSIONS: z.coerce
+    .number()
+    .int()
+    .min(256)
+    .max(2000)
+    .default(1024),
+  ASSISTANT_MAX_STEPS: z.coerce.number().int().min(1).max(20).default(20),
+  ASSISTANT_REQUESTS_PER_MINUTE: z.coerce.number().int().min(1).default(20),
+});
+export type AssistantConfig = z.infer<typeof assistantConfigSchema>;
+export function loadAssistantConfig(
+  env: NodeJS.ProcessEnv = process.env,
+): AssistantConfig {
+  const parsed = assistantConfigSchema.safeParse(env);
+  if (!parsed.success)
+    throw new Error(
+      `Invalid environment: ${[...new Set(parsed.error.issues.map((issue) => issue.path.join(".")))].join(", ")}`,
+    );
+  return parsed.data;
+}

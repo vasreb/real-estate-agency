@@ -40,6 +40,7 @@ describe("GET /api/deals", () => {
         type: "sale",
         client_name: "Romashka LLC",
         property_address: "Moscow, Tverskaya St., 1, apt. 10",
+        team_id: ids.teamNorth,
         team_name: "Team North",
       });
       expect(response.body).not.toContain("file_data");

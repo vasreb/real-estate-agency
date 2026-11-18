@@ -1,8 +1,12 @@
 import type {
   CreateDocumentInput,
+  CreateTeamDocumentInput,
   DealScope,
   DocumentMetadata,
   PatchDocumentInput,
+  Role,
+  TeamDocument,
+  TeamScope,
 } from "@agency/contracts";
 import type { Database } from "../../../infrastructure/database/index.js";
 import { HttpError } from "../../../infrastructure/errors.js";
@@ -16,6 +20,11 @@ import {
   documentMetadataSelect,
   toDocumentMetadata,
 } from "../infrastructure/metadata-reader.js";
+import {
+  createTeamDocumentReader,
+  teamDocumentSelect,
+  toTeamDocument,
+} from "../infrastructure/team-document-reader.js";
 
 export type DocumentCommandOptions = {
   database: Database;
@@ -24,6 +33,11 @@ export type DocumentCommandOptions = {
     userId: string,
     dealId: string,
   ) => Promise<DealScope | null>;
+  /** Injected from the teams module by the composition root. */
+  getAccessibleTeamScope: (
+    userId: string,
+    teamId: string,
+  ) => Promise<TeamScope | null>;
 };
 
 export type StoredFile = {
@@ -35,6 +49,19 @@ export type StoredFile = {
 type Transaction = Parameters<Parameters<Database["$transaction"]>[0]>[0];
 
 const PARENT_FK = "documents_parent_same_deal_fk";
+
+/** At most one active job per document; a duplicate insert is ignored. */
+async function enqueueIndexing(tx: Transaction, documentId: string) {
+  await tx.indexJob.createMany({
+    data: [{ documentId }],
+    skipDuplicates: true,
+  });
+}
+
+type DocumentAccess = {
+  document: { id: string; dealId: string | null; teamId: string };
+  role: Role;
+};
 
 export function createDocumentCommands(options: DocumentCommandOptions) {
   const { database } = options;
@@ -50,16 +77,53 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
     return scope;
   }
 
-  async function findDocumentScope(userId: string, documentId: string) {
+  /**
+   * Resolves the owning team from either owner (deal or team) and checks
+   * membership. Missing and foreign documents are indistinguishable (404).
+   */
+  async function findDocumentAccess(
+    userId: string,
+    documentId: string,
+  ): Promise<DocumentAccess> {
     const document = await database.document.findUnique({
       where: { id: documentId },
-      select: { id: true, dealId: true },
+      select: { id: true, dealId: true, teamId: true },
     });
-    const scope = document
-      ? await options.getAccessibleDealScope(userId, document.dealId)
+    if (!document) throw new HttpError("NOT_FOUND");
+    if (document.dealId) {
+      const scope = await options.getAccessibleDealScope(
+        userId,
+        document.dealId,
+      );
+      if (!scope) throw new HttpError("NOT_FOUND");
+      return {
+        document: {
+          id: document.id,
+          dealId: document.dealId,
+          teamId: scope.team_id,
+        },
+        role: scope.role,
+      };
+    }
+    const scope = document.teamId
+      ? await options.getAccessibleTeamScope(userId, document.teamId)
       : null;
-    if (!document || !scope) throw new HttpError("NOT_FOUND");
-    return { document, scope };
+    if (!document.teamId || !scope) throw new HttpError("NOT_FOUND");
+    return {
+      document: { id: document.id, dealId: null, teamId: document.teamId },
+      role: scope.role,
+    };
+  }
+
+  /** 404 for missing or foreign teams (checked first), then 403 for members. */
+  async function authorizeTeamWrite(
+    userId: string,
+    teamId: string,
+  ): Promise<TeamScope> {
+    const scope = await options.getAccessibleTeamScope(userId, teamId);
+    if (!scope) throw new HttpError("NOT_FOUND");
+    if (scope.role !== "admin") throw new HttpError("FORBIDDEN");
+    return scope;
   }
 
   /**
@@ -86,8 +150,71 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
     throw error;
   }
 
+  const teamReader = createTeamDocumentReader({ database });
+
   return {
     authorizeDealWrite,
+    authorizeTeamWrite,
+
+    async listTeamDocuments(
+      userId: string,
+      teamId: string,
+    ): Promise<TeamDocument[]> {
+      await authorizeTeamWrite(userId, teamId);
+      return teamReader.listTeamDocuments(teamId);
+    },
+
+    async createTeamDocument(
+      userId: string,
+      teamId: string,
+      input: CreateTeamDocumentInput,
+      file: StoredFile,
+    ): Promise<TeamDocument> {
+      await authorizeTeamWrite(userId, teamId);
+      const row = await database.$transaction(async (tx) => {
+        const created = await tx.document.create({
+          data: {
+            teamId,
+            type: input.type,
+            title: input.title,
+            status: input.status,
+            documentNumber: input.document_number ?? null,
+            documentDate: input.document_date
+              ? toSqlDate(input.document_date)
+              : null,
+            effectiveFrom: input.effective_from
+              ? toSqlDate(input.effective_from)
+              : null,
+            fileName: file.fileName,
+            mimeType: file.mimeType,
+            fileData: file.bytes,
+          },
+          select: teamDocumentSelect,
+        });
+        await enqueueIndexing(tx, created.id);
+        return created;
+      });
+      return toTeamDocument(row);
+    },
+
+    /** Puts a document back into the indexing queue (admin only). */
+    async reindexDocument(
+      userId: string,
+      documentId: string,
+    ): Promise<TeamDocument> {
+      const { document, role } = await findDocumentAccess(userId, documentId);
+      if (role !== "admin") throw new HttpError("FORBIDDEN");
+      const row = await database.$transaction(async (tx) => {
+        const updated = await tx.document.update({
+          where: { id: document.id },
+          data: { processingStatus: "pending", processingError: null },
+          select: teamDocumentSelect,
+        });
+        await enqueueIndexing(tx, document.id);
+        return updated;
+      });
+      return toTeamDocument(row);
+    },
 
     async createDocument(
       userId: string,
@@ -106,7 +233,7 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
         const row = await database.$transaction(async (tx) => {
           if (requirement === "lookup")
             await assertLinkableParent(tx, scope.id, input.parent_document_id!);
-          return tx.document.create({
+          const created = await tx.document.create({
             data: {
               dealId: scope.id,
               type: input.type,
@@ -126,6 +253,8 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
             },
             select: documentMetadataSelect,
           });
+          await enqueueIndexing(tx, created.id);
+          return created;
         });
         return toDocumentMetadata(row);
       } catch (error) {
@@ -138,8 +267,11 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
       documentId: string,
       patch: PatchDocumentInput,
     ): Promise<DocumentMetadata> {
-      const { document, scope } = await findDocumentScope(userId, documentId);
-      if (scope.role !== "admin") throw new HttpError("FORBIDDEN");
+      const { document, role } = await findDocumentAccess(userId, documentId);
+      if (role !== "admin") throw new HttpError("FORBIDDEN");
+      // Team-collection documents are managed through the team documents API.
+      const dealId = document.dealId;
+      if (!dealId) throw new HttpError("VALIDATION_ERROR");
       const data = toDocumentUpdate(patch);
       try {
         const row = await database.$transaction(async (tx) => {
@@ -156,11 +288,7 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
           if (requirement === "invalid")
             throw new HttpError("VALIDATION_ERROR");
           if (requirement === "lookup")
-            await assertLinkableParent(
-              tx,
-              document.dealId,
-              data.parentDocumentId!,
-            );
+            await assertLinkableParent(tx, dealId, data.parentDocumentId!);
           return tx.document.update({
             where: { id: document.id },
             data,
@@ -174,8 +302,8 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
     },
 
     async deleteDocument(userId: string, documentId: string): Promise<void> {
-      const { document, scope } = await findDocumentScope(userId, documentId);
-      if (scope.role !== "admin") throw new HttpError("FORBIDDEN");
+      const { document, role } = await findDocumentAccess(userId, documentId);
+      if (role !== "admin") throw new HttpError("FORBIDDEN");
       try {
         const { count } = await database.document.deleteMany({
           where: { id: document.id },
@@ -198,7 +326,7 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
       userId: string,
       documentId: string,
     ): Promise<StoredFile> {
-      const { document } = await findDocumentScope(userId, documentId);
+      const { document } = await findDocumentAccess(userId, documentId);
       const row = await database.document.findUnique({
         where: { id: document.id },
         select: { fileData: true, fileName: true, mimeType: true },
@@ -208,6 +336,37 @@ export function createDocumentCommands(options: DocumentCommandOptions) {
         bytes: row.fileData,
         fileName: row.fileName,
         mimeType: row.mimeType,
+      };
+    },
+
+    /**
+     * PDF for in-browser viewing: the original for PDFs, the generated PDF
+     * representation for DOCX. 404 while the representation is not ready.
+     */
+    async readDocumentPreview(
+      userId: string,
+      documentId: string,
+    ): Promise<StoredFile> {
+      const { document } = await findDocumentAccess(userId, documentId);
+      const row = await database.document.findUnique({
+        where: { id: document.id },
+        select: {
+          fileData: true,
+          fileName: true,
+          mimeType: true,
+          pdfRepresentation: true,
+        },
+      });
+      if (!row) throw new HttpError("NOT_FOUND");
+      const isPdf = row.mimeType === "application/pdf";
+      const bytes = isPdf ? row.fileData : row.pdfRepresentation;
+      if (!bytes) throw new HttpError("NOT_FOUND");
+      return {
+        bytes,
+        fileName: isPdf
+          ? row.fileName
+          : row.fileName.replace(/\.[^.]+$/, "") + ".pdf",
+        mimeType: "application/pdf",
       };
     },
   };

@@ -19,7 +19,7 @@ export const documentMetadataSelect = {
 
 type MetadataRow = {
   id: string;
-  dealId: string;
+  dealId: string | null;
   parentDocumentId: string | null;
   type: DocumentMetadata["type"];
   title: string;
@@ -36,6 +36,9 @@ const isoDate = (value: Date | null) =>
   value ? value.toISOString().slice(0, 10) : null;
 
 export function toDocumentMetadata(row: MetadataRow): DocumentMetadata {
+  // Deal metadata paths only return deal documents; team documents get their
+  // own representation with the team documents API.
+  if (row.dealId === null) throw new Error("Expected a deal document");
   return {
     id: row.id,
     deal_id: row.dealId,

@@ -27,6 +27,84 @@ a real deployment, and no paid external service is required.
 | `SEED_*_PASSWORD`     | dev only     | Development seed only. The seed refuses `NODE_ENV=production` / `APP_ENV=production`.                                                                                                       |
 | `TEST_DATABASE_URL`   | tests only   | Must be `…/agency_test` on a local/test host and differ from `DATABASE_URL`; resets are refused otherwise.                                                                                  |
 
+### Assistant and indexing worker
+
+| Variable            | Where       | Notes                                                                                                                                                         |
+| ------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY` | api         | Claude API key. Without both keys the `/api/chat` route is absent (404).                                                                                      |
+| `VOYAGE_API_KEY`    | api, worker | Voyage AI key for query and document embeddings (ADR-0009). Document text is sent to the provider.                                                            |
+| `ASSISTANT_MODEL`   | api         | Default `claude-haiku-5-5`; change it without touching the index. `ASSISTANT_MAX_STEPS` (20, the maximum) and `ASSISTANT_REQUESTS_PER_MINUTE` (20) bound use. |
+| `EMBEDDING_MODEL`   | api, worker | Default `voyage-4`; `EMBEDDING_DIMENSIONS` must be 1024 to match `document_chunks.embedding`. A model change needs a re-index.                                |
+| `OCR_LANGUAGES`     | worker      | Tesseract languages, default `eng` (the image also has `rus`; for example `eng+rus`).                                                                         |
+| `WORKER_*`          | worker      | Poll interval, stale-job timeout, attempts and backoff; defaults are in `apps/api/src/infrastructure/worker-config.ts`.                                       |
+
+Indexing runs in a separate container built from `apps/api/Dockerfile.worker`
+(ADR-0008). PostgreSQL must be the `pgvector/pgvector:pg18-trixie` image
+(ADR-0006). It is built on the same Debian release (13, glibc 2.41) as
+`postgres:18`, so an existing `postgres:18` volume can be reused. Do not use
+the plain `pgvector/pgvector:pg18` tag on such a volume: it is built on Debian
+12 (glibc 2.36), and PostgreSQL reports a collation version mismatch (and text
+indexes may be ordered wrongly) until `ALTER DATABASE ... REFRESH COLLATION
+VERSION` and `REINDEX DATABASE` are run.
+
+```bash
+docker compose -f compose.yaml -f compose.production.yaml build worker
+docker compose -f compose.yaml -f compose.production.yaml run --rm migrate
+docker compose -f compose.yaml -f compose.production.yaml up -d worker
+# queue every document that is not indexed yet, then exit
+docker compose -f compose.yaml -f compose.production.yaml run --rm worker node apps/api/dist/worker.js --backfill
+```
+
+Failed documents show their reason on `/admin/documents` and can be re-queued
+there. The reference-question run (`apps/api/src/eval.ts`, spec section 7)
+needs the same keys and prints the five report sections. Reference questions
+for the synthetic archive are in `docs/rag-eval/archive-questions.json`; the
+file schema is `evalQuestionSchema`.
+
+## Streamed answers
+
+The assistant answers over `POST /api/chat/stream` as newline-delimited JSON
+(`application/x-ndjson`): `status`, `delta` (provisional text), `reset`
+(discard the provisional text), `final` (the checked answer with citations) and
+`error`. The event schema is `chatStreamEventSchema` in `@agency/contracts`.
+`POST /api/chat` returns the same answer as one JSON document and stays for
+evaluation and scripts.
+
+- Access, validation and rate limits are checked before the first byte, so
+  they are ordinary HTTP errors (401, 404, 429); only later failures arrive as
+  an `error` event, without provider details.
+- A closed tab aborts the model request, so it stops costing money.
+- The API sends `Cache-Control: private, no-store, no-transform` and
+  `X-Accel-Buffering: no`. The Next rewrite passes the stream through
+  unbuffered. Any proxy or TLS edge in front of the web server must not buffer
+  or compress `/api/chat/stream` (nginx: `proxy_buffering off;`), otherwise the
+  answer appears all at once at the end.
+
+## Size of the model context
+
+A search over a whole team can touch many deals. To keep one answer small
+(measured with the Anthropic token counter, one `search_documents` result fell
+from about 20 000 to about 9 000 tokens):
+
+- Only the 8 best passages are returned, and amendments are expanded for the 4
+  best-ranked contracts of a search.
+- Every amendment is still listed with its status, dates and link, but only
+  the 4 closest bring text (2 passages each). The others carry a short extract
+  and `text_not_included`; the model reads one in full with `search_documents`
+  and its `document_id` before relying on it.
+- "Closest" uses three signals per passage of an amendment (`matched_by` in
+  the result): similarity to the question; similarity to the contract passages
+  the search found (stored embeddings, no extra embedding call), which finds
+  the amendment that rewrites a clause even when the question is worded
+  differently; and a citation of that clause's number ("clause 4.2", "section
+  4.2", "paragraph 4.2", "article 4.2"), which ranks above any similarity. If
+  the question matched only amendments, the contract passages closest to the
+  question serve as the clause.
+- When a request grows past 60 000 tokens, older search results of the same
+  question are replaced by a short note (only the newest stays whole).
+- Hard stops: `ASSISTANT_MAX_STEPS` (20) steps, and a single request over
+  150 000 tokens ends the answer with a message that says which limit it was.
+
 ## Security-relevant behavior
 
 - Cookie `agency_session`: host-only, `Path=/`, `HttpOnly`, `SameSite=Lax`,

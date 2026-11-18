@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AssistantWidget } from "@/widgets/assistant-widget";
 
 export function Shell({ children }: { children: ReactNode }) {
   return (
@@ -7,6 +8,7 @@ export function Shell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       <div className="app-shell">{children}</div>
+      <AssistantWidget />
     </>
   );
 }

@@ -1,6 +1,7 @@
 import { createDocumentSchema, type DealScope } from "@agency/contracts";
 import { createDealQueries } from "../../src/modules/deals/index.js";
 import { createDocumentCommands } from "../../src/modules/documents/index.js";
+import { createTeamQueries } from "../../src/modules/teams/index.js";
 import { createSamplePdf, ids, PDF_MIME } from "../fixtures/index.js";
 import { openDatabase } from "./helpers.js";
 
@@ -9,10 +10,13 @@ const deals = createDealQueries({
   database: db,
   listDocumentMetadata: () => Promise.resolve([]),
 });
+const teams = createTeamQueries({ database: db });
 const commands = createDocumentCommands({
   database: db,
   getAccessibleDealScope: (userId: string, dealId: string) =>
     deals.getAccessibleDealScope(userId, dealId),
+  getAccessibleTeamScope: (userId: string, teamId: string) =>
+    teams.getAccessibleTeamScope(userId, teamId),
 });
 const created: string[] = [];
 let pdf: Uint8Array<ArrayBuffer>;

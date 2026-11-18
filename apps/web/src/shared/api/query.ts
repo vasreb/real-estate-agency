@@ -3,6 +3,8 @@ import type { QueryClient } from "@tanstack/react-query";
 export const queryKeys = {
   deals: () => ["deals"] as const,
   deal: (dealId: string) => ["deal", dealId] as const,
+  teams: () => ["teams"] as const,
+  teamDocuments: (teamId: string) => ["team-documents", teamId] as const,
 };
 
 /**

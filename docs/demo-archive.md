@@ -5,13 +5,20 @@ bytes, in the task-owned PostgreSQL 18 database `agency_demo_archive` on
 `127.0.0.1:55433`. Existing development/test databases and the application's
 connection configuration were not changed.
 
+> **Update 2026-11-18:** the database now runs in the container
+> `agency-archive-demo-pgvector` (`pgvector/pgvector:pg18-trixie`, same port,
+> roles and passwords as before). It was restored from a dump taken from the
+> original container and carries the RAG tables, with all 2,400 documents
+> indexed (7,345 chunks). The original container was removed; its data volume
+> `agency-archive-demo-4ec9f2fd810d-data` is kept as a backup.
+
 ## Inspect the loaded data without exporting credentials
 
 The current owned container is recorded in
 `.omo/evidence/realistic-agency-archive/task-17-target.json`. For this execution:
 
 ```powershell
-docker exec agency-archive-demo-4ec9f2fd810d psql -X --username agency_archive --dbname agency_demo_archive --command "SELECT count(*) FROM documents;"
+docker exec agency-archive-demo-pgvector psql -X --username agency_archive --dbname agency_demo_archive --command "SELECT count(*) FROM documents;"
 ```
 
 This runs a read-only query over local container access. Do not inspect/copy the

@@ -34,6 +34,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/chat": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Unsafe method: the browser-sent Origin header must equal PUBLIC_ORIGIN exactly, otherwise 403. */
+    post: operations["chat"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/chat/stream": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Unsafe method: the browser-sent Origin header must equal PUBLIC_ORIGIN exactly, otherwise 403. */
+    post: operations["chatStream"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/deals": {
     parameters: {
       query?: never;
@@ -117,6 +151,72 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/documents/{documentId}/preview": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["previewDocument"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/documents/{documentId}/reindex": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** @description Unsafe method: the browser-sent Origin header must equal PUBLIC_ORIGIN exactly, otherwise 403. */
+    post: operations["reindexDocument"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/teams": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["listTeams"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/teams/{teamId}/documents": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations["listTeamDocuments"];
+    put?: never;
+    /** @description Unsafe method: the browser-sent Origin header must equal PUBLIC_ORIGIN exactly, otherwise 403. */
+    post: operations["uploadTeamDocument"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -169,7 +269,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -191,7 +292,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -213,7 +315,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -235,7 +338,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -257,7 +361,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -297,7 +402,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -319,7 +425,476 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+    };
+  };
+  chat: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @default [] */
+          history?: {
+            content: string;
+            /** @enum {string} */
+            role: "user" | "assistant";
+          }[];
+          message: string;
+          /**
+           * @default {
+           *       "deal_ids": [],
+           *       "document_ids": []
+           *     }
+           */
+          state?: {
+            /** @default [] */
+            deal_ids?: string[];
+            /** @default [] */
+            document_ids?: string[];
+          };
+          /** Format: uuid */
+          team_id: string;
+        };
+      };
+    };
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            answer: {
+              citations: number[];
+              text: string;
+            }[];
+            citations: {
+              /** Format: uuid */
+              document_id: string;
+              id: number;
+              page_end: number;
+              page_start: number;
+              preview_url: string;
+              quote: string;
+              title: string;
+            }[];
+            /**
+             * @default {
+             *       "deal_ids": [],
+             *       "document_ids": []
+             *     }
+             */
+            state: {
+              /** @default [] */
+              deal_ids: string[];
+              /** @default [] */
+              document_ids: string[];
+            };
+            usage: {
+              cache_creation_tokens: number;
+              cache_read_tokens: number;
+              input_tokens: number;
+              latency_ms: number;
+              model: string;
+              model_calls: number;
+              output_tokens: number;
+              stopped_by_budget: boolean;
+            };
+          };
+        };
+      };
+      /** @description Error */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+    };
+  };
+  chatStream: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": {
+          /** @default [] */
+          history?: {
+            content: string;
+            /** @enum {string} */
+            role: "user" | "assistant";
+          }[];
+          message: string;
+          /**
+           * @default {
+           *       "deal_ids": [],
+           *       "document_ids": []
+           *     }
+           */
+          state?: {
+            /** @default [] */
+            deal_ids?: string[];
+            /** @default [] */
+            document_ids?: string[];
+          };
+          /** Format: uuid */
+          team_id: string;
+        };
+      };
+    };
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/x-ndjson":
+            | {
+                /** @enum {string} */
+                stage: "working" | "searching";
+                /** @constant */
+                type: "status";
+              }
+            | {
+                text: string;
+                /** @constant */
+                type: "delta";
+              }
+            | {
+                /** @constant */
+                type: "reset";
+              }
+            | {
+                response: {
+                  answer: {
+                    citations: number[];
+                    text: string;
+                  }[];
+                  citations: {
+                    /** Format: uuid */
+                    document_id: string;
+                    id: number;
+                    page_end: number;
+                    page_start: number;
+                    preview_url: string;
+                    quote: string;
+                    title: string;
+                  }[];
+                  /**
+                   * @default {
+                   *       "deal_ids": [],
+                   *       "document_ids": []
+                   *     }
+                   */
+                  state: {
+                    /** @default [] */
+                    deal_ids: string[];
+                    /** @default [] */
+                    document_ids: string[];
+                  };
+                  usage: {
+                    cache_creation_tokens: number;
+                    cache_read_tokens: number;
+                    input_tokens: number;
+                    latency_ms: number;
+                    model: string;
+                    model_calls: number;
+                    output_tokens: number;
+                    stopped_by_budget: boolean;
+                  };
+                };
+                /** @constant */
+                type: "final";
+              }
+            | {
+                code: string;
+                message: string;
+                /** @constant */
+                type: "error";
+              };
+        };
+      };
+      /** @description Error */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -348,6 +923,8 @@ export interface operations {
               id: string;
               number: string;
               property_address: string;
+              /** Format: uuid */
+              team_id: string;
               team_name: string;
               /** @enum {string} */
               type: "sale" | "rental";
@@ -372,7 +949,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -394,7 +972,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -488,7 +1067,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -510,7 +1090,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -532,7 +1113,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -554,7 +1136,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -651,7 +1234,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -673,7 +1257,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -695,7 +1280,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -717,7 +1303,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -739,7 +1326,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -761,7 +1349,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -783,7 +1372,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -805,7 +1395,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -847,7 +1438,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -869,7 +1461,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -891,7 +1484,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -913,7 +1507,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -935,7 +1530,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -957,7 +1553,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1039,7 +1636,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1061,7 +1659,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1083,7 +1682,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1105,7 +1705,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1127,7 +1728,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1174,7 +1776,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1196,7 +1799,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1218,7 +1822,8 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
@@ -1240,7 +1845,791 @@ export interface operations {
               | "PAYLOAD_TOO_LARGE"
               | "UNSUPPORTED_FILE_TYPE"
               | "RATE_LIMITED"
-              | "INTERNAL_ERROR";
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+    };
+  };
+  previewDocument: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        documentId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          /** @description inline PDF */
+          "Content-Disposition"?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pdf": string;
+        };
+      };
+      /** @description Error */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+    };
+  };
+  reindexDocument: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        documentId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** Format: date-time */
+            created_at: string;
+            deal_id: string | null;
+            document_date: string | null;
+            document_number: string | null;
+            effective_from: string | null;
+            file_name: string;
+            /** Format: uuid */
+            id: string;
+            indexed_at: string | null;
+            /** @enum {string} */
+            mime_type:
+              | "application/pdf"
+              | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            processing_error: string | null;
+            /** @enum {string} */
+            processing_status: "pending" | "processing" | "indexed" | "failed";
+            /** @enum {string} */
+            status: "draft" | "signed" | "unknown";
+            /** Format: uuid */
+            team_id: string;
+            title: string;
+            /** @enum {string} */
+            type:
+              | "contract"
+              | "amendment"
+              | "listing_sheet"
+              | "handover_report"
+              | "other";
+          };
+        };
+      };
+      /** @description Error */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+    };
+  };
+  listTeams: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            items: {
+              /** Format: uuid */
+              id: string;
+              name: string;
+              /** @enum {string} */
+              role: "member" | "admin";
+            }[];
+          };
+        };
+      };
+      /** @description Error */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+    };
+  };
+  listTeamDocuments: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        teamId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Success */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            items: {
+              /** Format: date-time */
+              created_at: string;
+              deal_id: string | null;
+              document_date: string | null;
+              document_number: string | null;
+              effective_from: string | null;
+              file_name: string;
+              /** Format: uuid */
+              id: string;
+              indexed_at: string | null;
+              /** @enum {string} */
+              mime_type:
+                | "application/pdf"
+                | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+              processing_error: string | null;
+              /** @enum {string} */
+              processing_status:
+                "pending" | "processing" | "indexed" | "failed";
+              /** @enum {string} */
+              status: "draft" | "signed" | "unknown";
+              /** Format: uuid */
+              team_id: string;
+              title: string;
+              /** @enum {string} */
+              type:
+                | "contract"
+                | "amendment"
+                | "listing_sheet"
+                | "handover_report"
+                | "other";
+            }[];
+          };
+        };
+      };
+      /** @description Error */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+    };
+  };
+  uploadTeamDocument: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        teamId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": {
+          /** Format: date */
+          document_date?: string;
+          document_number?: string;
+          /** Format: date */
+          effective_from?: string;
+          /** Format: binary */
+          file: string;
+          /**
+           * @default unknown
+           * @enum {string}
+           */
+          status?: "draft" | "signed" | "unknown";
+          title: string;
+          /** @enum {string} */
+          type: "listing_sheet" | "handover_report" | "other";
+        };
+      };
+    };
+    responses: {
+      /** @description Success */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** Format: date-time */
+            created_at: string;
+            deal_id: string | null;
+            document_date: string | null;
+            document_number: string | null;
+            effective_from: string | null;
+            file_name: string;
+            /** Format: uuid */
+            id: string;
+            indexed_at: string | null;
+            /** @enum {string} */
+            mime_type:
+              | "application/pdf"
+              | "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            processing_error: string | null;
+            /** @enum {string} */
+            processing_status: "pending" | "processing" | "indexed" | "failed";
+            /** @enum {string} */
+            status: "draft" | "signed" | "unknown";
+            /** Format: uuid */
+            team_id: string;
+            title: string;
+            /** @enum {string} */
+            type:
+              | "contract"
+              | "amendment"
+              | "listing_sheet"
+              | "handover_report"
+              | "other";
+          };
+        };
+      };
+      /** @description Error */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      415: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
+            message: string;
+          };
+        };
+      };
+      /** @description Error */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            code:
+              | "VALIDATION_ERROR"
+              | "UNAUTHENTICATED"
+              | "FORBIDDEN"
+              | "NOT_FOUND"
+              | "DOCUMENT_REFERENCED"
+              | "PAYLOAD_TOO_LARGE"
+              | "UNSUPPORTED_FILE_TYPE"
+              | "RATE_LIMITED"
+              | "INTERNAL_ERROR"
+              | "ASSISTANT_UNAVAILABLE";
             message: string;
           };
         };
